@@ -1,0 +1,3927 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>LCR · EIS Workbench</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,600;9..144,700&family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js" onerror="window.__plotlyLoadFailed=true"></script>
+<style>
+  :root, [data-theme="dark"] {
+    --bg: #0b0d10;
+    --panel: #12161b;
+    --panel-2: #171c22;
+    --panel-3: #1c2229;
+    --line: #232a32;
+    --line-2: #2e3741;
+    --ink: #e6e8eb;
+    --ink-dim: #8b95a1;
+    --ink-faint: #525c68;
+    --accent: #d4a574;
+    --accent-2: #6fb4a8;
+    --danger: #d97757;
+    --grid-hex: rgba(255,255,255,0.06);
+    --bg-radial-1: rgba(212,165,116,0.06);
+    --bg-radial-2: rgba(111,180,168,0.04);
+    --shadow-strong: 0 8px 30px rgba(0,0,0,0.5);
+    --shadow-popover: 0 10px 30px rgba(0,0,0,0.55);
+    --tint-soft: rgba(255,255,255,0.05);
+    --tint-softer: rgba(255,255,255,0.04);
+    --danger-soft: rgba(217,119,87,0.1);
+    --legend-bg: rgba(18,22,27,0.7);
+    --axis-line: rgba(255,255,255,0.2);
+    --axis-zero: rgba(255,255,255,0.1);
+    --legend-border: rgba(255,255,255,0.1);
+  }
+  [data-theme="light"] {
+    --bg: #f4f1eb;
+    --panel: #ffffff;
+    --panel-2: #f8f5ef;
+    --panel-3: #efeae0;
+    --line: #e0dad0;
+    --line-2: #c9c2b3;
+    --ink: #2a2620;
+    --ink-dim: #6b6358;
+    --ink-faint: #9a9285;
+    --accent: #9c6d3e;
+    --accent-2: #3e7a72;
+    --danger: #b04827;
+    --grid-hex: rgba(0,0,0,0.06);
+    --bg-radial-1: rgba(156,109,62,0.08);
+    --bg-radial-2: rgba(62,122,114,0.06);
+    --shadow-strong: 0 8px 24px rgba(74,55,30,0.12);
+    --shadow-popover: 0 8px 24px rgba(74,55,30,0.18);
+    --tint-soft: rgba(0,0,0,0.04);
+    --tint-softer: rgba(0,0,0,0.03);
+    --danger-soft: rgba(176,72,39,0.08);
+    --legend-bg: rgba(255,255,255,0.85);
+    --axis-line: rgba(0,0,0,0.25);
+    --axis-zero: rgba(0,0,0,0.12);
+    --legend-border: rgba(0,0,0,0.1);
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Fraunces', Georgia, serif;
+    font-size: 15px;
+    line-height: 1.5;
+    min-height: 100vh;
+  }
+  body {
+    background:
+      radial-gradient(ellipse 1200px 600px at 80% -10%, var(--bg-radial-1), transparent 60%),
+      radial-gradient(ellipse 900px 500px at 0% 100%, var(--bg-radial-2), transparent 60%),
+      var(--bg);
+    transition: background-color 200ms;
+  }
+  .mono { font-family: 'JetBrains Mono', ui-monospace, monospace; font-feature-settings: "tnum" 1; }
+
+  header {
+    padding: 22px 32px;
+    border-bottom: 1px solid var(--line);
+    display: flex; align-items: center; gap: 20px; flex-wrap: wrap;
+  }
+  header .brand { display: flex; align-items: baseline; gap: 14px; flex: 1; }
+  header .title {
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: 26px;
+    letter-spacing: -0.02em;
+  }
+  header .title em { font-style: italic; font-weight: 300; color: var(--accent); }
+  header .sub {
+    color: var(--ink-dim);
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  header .toolbar { display: flex; gap: 8px; align-items: center; }
+
+  .layout {
+    display: grid;
+    grid-template-columns: 340px 1fr;
+    min-height: calc(100vh - 76px);
+  }
+  @media (max-width: 1000px) {
+    .layout { grid-template-columns: 1fr; }
+    aside { border-right: none !important; border-bottom: 1px solid var(--line); max-height: none !important; position: static !important; }
+  }
+  aside {
+    border-right: 1px solid var(--line);
+    padding: 22px;
+    overflow-y: auto;
+    max-height: calc(100vh - 76px);
+    position: sticky;
+    top: 0;
+    align-self: start;
+  }
+  main { padding: 22px 28px 60px; }
+
+  h2 {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    font-weight: 500;
+    margin: 0 0 12px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  h2 .num {
+    width: 18px; height: 18px; border-radius: 50%;
+    background: var(--accent); color: var(--bg);
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 10px; font-weight: 700;
+  }
+  .section { margin-bottom: 26px; }
+
+  .drop {
+    border: 1.5px dashed var(--line-2);
+    border-radius: 8px;
+    padding: 20px 14px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 160ms;
+    background: var(--panel);
+    display: block;
+  }
+  .drop:hover, .drop.over {
+    border-color: var(--accent);
+    background: var(--panel-2);
+    transform: translateY(-1px);
+  }
+  .drop .icon { font-size: 22px; color: var(--accent); margin-bottom: 6px; }
+  .drop .hint { color: var(--ink-dim); font-size: 12px; }
+  .drop input[type=file] { display: none; }
+  .type-legend {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--ink-faint);
+    letter-spacing: 0.04em;
+    margin-top: 10px;
+    line-height: 1.7;
+  }
+
+  .sample-row {
+    display: flex; align-items: center; gap: 8px;
+    padding: 10px 11px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    margin-bottom: 6px;
+    transition: all 140ms;
+    cursor: pointer;
+  }
+  .sample-row:hover { background: var(--panel-2); }
+  .sample-row.active { border-color: var(--accent); background: var(--panel-2); }
+  .sample-row.off { opacity: 0.55; }
+  .sample-row.off .swatch { filter: grayscale(0.6) brightness(0.7); }
+  .sample-row.off .name { text-decoration: line-through; text-decoration-color: var(--ink-faint); }
+  .sample-row .swatch {
+    width: 14px; height: 14px; border-radius: 50%; flex-shrink: 0;
+    box-shadow: 0 0 0 2px var(--tint-softer);
+    cursor: pointer;
+  }
+  .sample-row .swatch:hover { transform: scale(1.15); }
+  .sample-row .name {
+    flex: 1; background: transparent; border: none; color: var(--ink);
+    font-family: 'Fraunces', serif; font-size: 14px; padding: 2px 4px;
+    border-radius: 3px; min-width: 0;
+  }
+  .sample-row .name:focus { outline: none; background: var(--tint-soft); }
+  .sample-row .meta {
+    font-family: 'JetBrains Mono', monospace; font-size: 10px;
+    color: var(--ink-faint); padding: 0 4px;
+  }
+  .sample-row .del {
+    background: transparent; border: none; color: var(--ink-faint);
+    cursor: pointer; padding: 2px 6px; border-radius: 3px;
+    font-size: 13px;
+  }
+  .sample-row .del:hover { color: var(--danger); background: var(--danger-soft); }
+  /* Prominent visibility toggle — larger checkbox-style button.
+     ON state = filled accent-color square with checkmark.
+     OFF state = empty bordered square. Easy to spot at a glance. */
+  .sample-row .vis-btn {
+    background: var(--panel-3);
+    border: 1.5px solid var(--line-2);
+    color: var(--ink-faint);
+    cursor: pointer;
+    border-radius: 4px;
+    width: 26px; height: 26px;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 140ms;
+    flex-shrink: 0;
+    padding: 0;
+  }
+  .sample-row .vis-btn.on {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--panel);
+  }
+  .sample-row .vis-btn:not(.on):hover {
+    border-color: var(--ink-dim);
+    color: var(--ink);
+  }
+  .sample-row .vis-btn.on:hover { filter: brightness(1.1); }
+
+  /* Bulk actions row at top of sample list */
+  .bulk-row {
+    display: flex; align-items: center; gap: 6px;
+    padding: 6px 4px 10px;
+    margin-bottom: 4px;
+    border-bottom: 1px dashed var(--line);
+  }
+  .bulk-row .bulk-count {
+    flex: 1;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--ink-dim);
+    letter-spacing: 0.05em;
+  }
+  .bulk-row .bulk-btn {
+    background: var(--panel-2);
+    color: var(--ink-dim);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    padding: 4px 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9.5px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 120ms;
+  }
+  .bulk-row .bulk-btn:hover {
+    color: var(--accent);
+    border-color: var(--accent);
+  }
+
+  .color-popover {
+    position: absolute;
+    background: var(--panel-2);
+    border: 1px solid var(--line-2);
+    border-radius: 6px;
+    padding: 10px;
+    box-shadow: var(--shadow-strong);
+    z-index: 100;
+    width: 200px;
+  }
+  .color-popover .section-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin: 0 0 5px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .color-popover .section-label .clear-recent {
+    background: transparent; border: none; color: var(--ink-faint);
+    cursor: pointer; font-size: 9px; padding: 0;
+    letter-spacing: 0.12em; text-transform: uppercase;
+  }
+  .color-popover .section-label .clear-recent:hover { color: var(--danger); }
+  .color-popover .swatch-grid {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    gap: 5px;
+    margin-bottom: 10px;
+  }
+  .color-popover .c {
+    width: 18px; height: 18px; border-radius: 50%; cursor: pointer;
+    border: 2px solid transparent;
+    transition: transform 120ms;
+  }
+  .color-popover .c:hover { transform: scale(1.18); }
+  .color-popover .c.sel { border-color: var(--ink); box-shadow: 0 0 0 1px var(--panel); }
+  .color-popover .empty-recent {
+    color: var(--ink-faint);
+    font-style: italic;
+    font-size: 11px;
+    padding: 3px 0 10px;
+  }
+  .color-popover .custom-row {
+    display: flex; align-items: center; gap: 8px;
+    padding-top: 8px;
+    border-top: 1px solid var(--line);
+  }
+  .color-popover .custom-btn {
+    flex: 1;
+    background: var(--panel-3);
+    border: 1px dashed var(--line-2);
+    color: var(--ink-dim);
+    cursor: pointer;
+    border-radius: 4px;
+    padding: 7px 10px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.05em;
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    transition: all 140ms;
+  }
+  .color-popover .custom-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    border-style: solid;
+  }
+  .color-popover .custom-btn .wheel {
+    width: 14px; height: 14px; border-radius: 50%;
+    background: conic-gradient(
+      from 0deg,
+      #ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000
+    );
+    flex-shrink: 0;
+  }
+  .color-popover .hex-input {
+    width: 70px;
+    background: var(--panel-3);
+    border: 1px solid var(--line);
+    color: var(--ink);
+    border-radius: 4px;
+    padding: 5px 6px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+  }
+  .color-popover .hex-input:focus { outline: none; border-color: var(--accent); }
+  .color-popover .native-color {
+    /* Hidden input — opened programmatically from the visible button */
+    position: absolute;
+    width: 0; height: 0; opacity: 0; pointer-events: none;
+  }
+
+  /* Font-size popover */
+  .font-popover {
+    position: absolute;
+    background: var(--panel-2);
+    border: 1px solid var(--line-2);
+    border-radius: 8px;
+    padding: 14px 14px 12px;
+    width: 300px;
+    box-shadow: var(--shadow-popover);
+    z-index: 200;
+  }
+  .font-pop-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--ink);
+    margin-bottom: 10px;
+  }
+  .font-pop-title .muted { color: var(--ink-faint); }
+  .font-pop-sub {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin: 10px 0 6px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid var(--line);
+  }
+  .font-pop-sub:first-of-type { margin-top: 4px; }
+  .font-row {
+    display: grid;
+    grid-template-columns: 92px 1fr 36px;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  .font-row label {
+    font-family: 'Fraunces', serif;
+    font-size: 12px;
+    color: var(--ink-dim);
+  }
+  .font-row .val {
+    color: var(--accent);
+    text-align: right;
+    font-size: 11px;
+  }
+  .font-row input[type=range] {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 100%;
+    height: 3px;
+    background: var(--line-2);
+    border-radius: 3px;
+    outline: none;
+  }
+  .font-row input[type=range]::-webkit-slider-thumb {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    background: var(--accent);
+    cursor: pointer;
+    border: 2px solid var(--panel-2);
+    box-shadow: 0 0 0 1px var(--accent);
+  }
+  .font-row input[type=range]::-moz-range-thumb {
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    background: var(--accent);
+    cursor: pointer;
+    border: 2px solid var(--panel-2);
+    box-shadow: 0 0 0 1px var(--accent);
+  }
+  .font-pop-actions {
+    display: flex; gap: 6px; margin-top: 6px;
+  }
+  .font-pop-actions button { flex: 1; justify-content: center; padding: 6px 8px; font-size: 9px; }
+  .legend-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 4px;
+    margin: 4px 0 6px;
+  }
+  .legend-grid .lpos {
+    background: var(--panel-3);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    height: 22px;
+    cursor: pointer;
+    transition: all 120ms;
+    padding: 0;
+    position: relative;
+  }
+  .legend-grid .lpos::after {
+    content: '';
+    position: absolute;
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: var(--ink-dim);
+  }
+  /* Position the dot inside each cell to indicate which corner/side */
+  .legend-grid .lpos[data-pos="tl"]::after { top: 3px; left: 3px; }
+  .legend-grid .lpos[data-pos="tc"]::after { top: 3px; left: 50%; transform: translateX(-50%); }
+  .legend-grid .lpos[data-pos="tr"]::after { top: 3px; right: 3px; }
+  .legend-grid .lpos[data-pos="ml"]::after { top: 50%; left: 3px; transform: translateY(-50%); }
+  .legend-grid .lpos[data-pos="mc"]::after { top: 50%; left: 50%; transform: translate(-50%,-50%); }
+  .legend-grid .lpos[data-pos="mr"]::after { top: 50%; right: 3px; transform: translateY(-50%); }
+  .legend-grid .lpos[data-pos="bl"]::after { bottom: 3px; left: 3px; }
+  .legend-grid .lpos[data-pos="bc"]::after { bottom: 3px; left: 50%; transform: translateX(-50%); }
+  .legend-grid .lpos[data-pos="br"]::after { bottom: 3px; right: 3px; }
+  .legend-grid .lpos:hover { border-color: var(--accent); }
+  .legend-grid .lpos.active { border-color: var(--accent); background: var(--panel-2); }
+  .legend-grid .lpos.active::after { background: var(--accent); width: 6px; height: 6px; }
+  .lpos-outside {
+    width: 100%; justify-content: center; margin-bottom: 6px; font-size: 9px;
+  }
+  .lpos-outside.active { border-color: var(--accent); color: var(--accent); }
+  .font-pop-hint {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9.5px;
+    color: var(--ink-faint);
+    line-height: 1.5;
+    margin-top: 10px;
+    letter-spacing: 0.02em;
+  }
+
+  .file-list {
+    margin: 4px 0 10px 24px;
+    display: flex; flex-wrap: wrap; gap: 4px;
+  }
+  .chip {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 2px 7px;
+    background: var(--panel-2);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    font-family: 'JetBrains Mono', monospace; font-size: 10px;
+  }
+  .chip.cprs { color: #c4a484; border-color: rgba(196,164,132,0.3); }
+  .chip.dz { color: #8eb8a8; border-color: rgba(142,184,168,0.3); }
+  .chip.phase { color: #a89dc9; border-color: rgba(168,157,201,0.3); }
+  .chip .rm { cursor: pointer; color: var(--ink-faint); padding-left: 2px; }
+  .chip .rm:hover { color: var(--danger); }
+
+  button.action, .action {
+    background: var(--panel);
+    color: var(--ink);
+    border: 1px solid var(--line-2);
+    padding: 7px 12px;
+    border-radius: 5px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 140ms;
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  button.action:hover { border-color: var(--accent); color: var(--accent); }
+  button.action.primary {
+    background: var(--accent); color: var(--bg);
+    border-color: var(--accent); font-weight: 600;
+  }
+  button.action.primary:hover { background: #e0b384; border-color: #e0b384; color: var(--bg); }
+  button.action.danger:hover { border-color: var(--danger); color: var(--danger); }
+  button.action.toggle-btn {
+    /* Theme/locale toggles — slightly more pronounced than other actions */
+    background: var(--panel);
+    border: 1px solid var(--line-2);
+    padding-left: 11px; padding-right: 11px;
+    min-width: 78px;
+    justify-content: center;
+  }
+  button.action.toggle-btn:hover {
+    background: var(--panel-2);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  /* Sidebar toggle switch (bare-bg) */
+  .style-row {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 10px 11px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+  }
+  .style-label {
+    flex: 1;
+    font-family: 'Fraunces', serif;
+    font-size: 13px;
+    color: var(--ink);
+    line-height: 1.4;
+    margin-top: 1px;
+  }
+  .style-hint {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--ink-faint);
+    line-height: 1.5;
+    margin-top: 3px;
+  }
+  .save-load-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+  }
+  .save-load-grid .action {
+    justify-content: center;
+    padding: 8px 6px;
+    font-size: 10px;
+  }
+  .save-load-grid #loadSessionBtn {
+    grid-column: 1 / -1;
+  }
+  .switch {
+    position: relative;
+    display: inline-block;
+    width: 34px; height: 18px;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .switch input { opacity: 0; width: 0; height: 0; }
+  .switch .slider {
+    position: absolute;
+    cursor: pointer;
+    inset: 0;
+    background: var(--line-2);
+    border-radius: 18px;
+    transition: background 160ms;
+  }
+  .switch .slider::before {
+    content: '';
+    position: absolute;
+    width: 13px; height: 13px;
+    left: 2.5px; top: 2.5px;
+    background: var(--panel);
+    border-radius: 50%;
+    transition: transform 160ms, background 160ms;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+  }
+  .switch input:checked + .slider { background: var(--accent); }
+  .switch input:checked + .slider::before { transform: translateX(15px); background: var(--bg); }
+
+  .plot-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+  }
+  @media (max-width: 1400px) { .plot-grid { grid-template-columns: 1fr; } }
+  .plot-card {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 18px 18px 14px;
+    transition: border-color 200ms;
+  }
+  .plot-card:hover { border-color: var(--line-2); }
+  .plot-card.full { grid-column: 1 / -1; }
+  .plot-card.compare {
+    background: linear-gradient(180deg, var(--panel) 0%, var(--panel-3) 100%);
+    border-color: var(--line-2);
+  }
+
+  .card-head {
+    display: flex; align-items: flex-start; gap: 12px; margin-bottom: 12px;
+    flex-wrap: wrap;
+  }
+  .card-head .titles { flex: 1; min-width: 200px; }
+  .plot-title {
+    font-family: 'Fraunces', serif;
+    font-weight: 500;
+    font-size: 17px;
+    margin: 0 0 2px;
+    letter-spacing: -0.01em;
+  }
+  .plot-title em { font-style: italic; color: var(--accent); font-weight: 400; }
+  .plot-sub {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--ink-faint);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .card-tools { display: flex; gap: 6px; align-items: center; }
+  .card-tools select, .card-tools button.icon-btn {
+    background: var(--panel-2);
+    color: var(--ink-dim);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    cursor: pointer;
+    height: 26px;
+  }
+  .card-tools select:hover, .card-tools button.icon-btn:hover {
+    border-color: var(--accent); color: var(--accent);
+  }
+  .card-tools select {
+    appearance: none;
+    background-image: linear-gradient(45deg, transparent 50%, var(--ink-dim) 50%), linear-gradient(135deg, var(--ink-dim) 50%, transparent 50%);
+    background-position: calc(100% - 12px) center, calc(100% - 7px) center;
+    background-size: 5px 5px;
+    background-repeat: no-repeat;
+    padding-right: 22px;
+  }
+  .card-tools .icon-btn { width: 26px; padding: 0; display:inline-flex; align-items:center; justify-content:center; }
+  .card-tools .dim-readout {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--ink-faint);
+    letter-spacing: 0.04em;
+    padding: 0 4px;
+    min-width: 56px;
+    text-align: center;
+  }
+
+  .plot-wrap { width: 100%; position: relative; }
+  .plot { width: 100%; height: 100%; }
+
+  .empty-state {
+    text-align: center;
+    color: var(--ink-faint);
+    padding: 100px 40px;
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-size: 18px;
+  }
+  .empty-state .big { font-size: 56px; color: var(--accent); margin-bottom: 18px; font-style: normal; }
+  .empty-state .tips {
+    font-family: 'JetBrains Mono', monospace;
+    font-style: normal;
+    font-size: 11px;
+    color: var(--ink-faint);
+    margin-top: 28px;
+    text-align: left;
+    max-width: 520px;
+    margin-left: auto; margin-right: auto;
+    line-height: 1.9;
+    letter-spacing: 0.03em;
+  }
+  .empty-state .tips .k { color: var(--accent); }
+
+  .toast {
+    position: fixed;
+    bottom: 24px; right: 24px;
+    background: var(--panel-2);
+    border: 1px solid var(--line-2);
+    border-left: 3px solid var(--accent);
+    padding: 12px 18px;
+    border-radius: 5px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--ink);
+    box-shadow: var(--shadow-strong);
+    transform: translateY(20px);
+    opacity: 0;
+    pointer-events: none;
+    transition: all 220ms;
+    z-index: 1000;
+    max-width: 380px;
+  }
+  .toast.show { transform: translateY(0); opacity: 1; }
+  .toast.error { border-left-color: var(--danger); }
+
+  .compare-controls {
+    display: grid;
+    grid-template-columns: 1fr 1.4fr 1fr;
+    gap: 14px;
+    margin-bottom: 16px;
+    padding: 14px;
+    background: var(--panel-2);
+    border-radius: 6px;
+    border: 1px solid var(--line);
+  }
+  @media (max-width: 800px) { .compare-controls { grid-template-columns: 1fr; } }
+  .ctrl-block label {
+    display: block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--ink-faint);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .ctrl-block select, .ctrl-block input {
+    width: 100%;
+    background: var(--panel);
+    color: var(--ink);
+    border: 1px solid var(--line-2);
+    border-radius: 4px;
+    padding: 7px 9px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+  }
+  .ctrl-block select:focus, .ctrl-block input:focus { outline: none; border-color: var(--accent); }
+  .y-axis-rows {
+    display: flex; flex-direction: column; gap: 5px;
+  }
+  .y-axis-row {
+    display: flex; align-items: center; gap: 6px;
+  }
+  .y-axis-tag {
+    display: inline-flex;
+    align-items: center; justify-content: center;
+    width: 28px; height: 26px;
+    border-radius: 4px;
+    color: white;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+  .y-axis-metric { flex: 1; }
+  .freq-chips { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 4px; }
+  .freq-chip {
+    background: var(--panel-3);
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .freq-chip .x { cursor: pointer; color: var(--ink-faint); font-size: 12px; line-height: 1; }
+  .freq-chip .x:hover { color: var(--danger); }
+
+  /* Compare diagnostics panel — collapsible table showing exact interp values */
+  .cmp-debug {
+    background: var(--panel-3);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    margin: 8px 0 12px;
+    padding: 0;
+    font-size: 11px;
+  }
+  .cmp-debug summary {
+    padding: 8px 12px;
+    cursor: pointer;
+    user-select: none;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--ink-dim);
+    letter-spacing: 0.04em;
+  }
+  .cmp-debug[open] summary { border-bottom: 1px solid var(--line); color: var(--ink); }
+  .cmp-debug summary:hover { color: var(--accent); }
+  .cmp-debug-body {
+    padding: 8px 12px 12px;
+    overflow-x: auto;
+  }
+  .cmp-debug table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+  }
+  .cmp-debug th, .cmp-debug td {
+    text-align: left;
+    padding: 4px 8px;
+    border-bottom: 1px solid var(--line);
+    white-space: nowrap;
+  }
+  .cmp-debug th {
+    color: var(--ink-faint);
+    font-weight: 500;
+    font-size: 9.5px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+  .cmp-debug td.value { font-family: 'JetBrains Mono', monospace; color: var(--ink); }
+  .cmp-debug td.range { color: var(--ink-faint); font-size: 10px; }
+  .cmp-debug td.warn-clamp {
+    color: var(--danger);
+    font-weight: 600;
+  }
+  .cmp-debug td.warn-clamp::before { content: '⚠ '; }
+  .cmp-debug .legend-key {
+    display: inline-block; width: 9px; height: 9px;
+    border-radius: 50%; margin-right: 6px; vertical-align: middle;
+  }
+
+  .quick-freq {
+    display: flex; gap: 4px; flex-wrap: wrap; margin-top: 6px;
+  }
+  .quick-freq button {
+    background: transparent;
+    border: 1px solid var(--line);
+    color: var(--ink-faint);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    padding: 2px 7px;
+    border-radius: 10px;
+    cursor: pointer;
+  }
+  .quick-freq button:hover { border-color: var(--accent); color: var(--accent); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <div class="title" data-i18n="appTitle">LCR · <em>EIS</em> Workbench</div>
+    <div class="sub" data-i18n="appSubtitle">HIOKI IM35xx · multi-sample comparator</div>
+  </div>
+  <div class="toolbar">
+    <button class="action toggle-btn" id="localeToggle" title="Language / 언어">EN  /  한</button>
+    <button class="action toggle-btn" id="themeToggle" title="Theme">☾  Dark</button>
+    <button class="action" id="exportCsv" title="Export all data as CSV zip" data-i18n="exportCsvZip">⇣ CSV (zip)</button>
+    <button class="action danger" id="clearAll" title="Remove all samples" data-i18n="resetBtn">⊗ Reset</button>
+  </div>
+</header>
+
+<div class="layout">
+  <aside>
+    <div class="section">
+      <h2><span class="num">1</span> <span data-i18n="samplesHead">Samples</span> <span style="margin-left:auto; color:var(--ink-faint);" class="mono" id="sampleCount"></span></h2>
+      <div id="sampleList"></div>
+      <button class="action" id="addSample" style="margin-top:6px; width:100%; justify-content:center;" data-i18n="newSample">＋ New Sample</button>
+    </div>
+
+    <div class="section">
+      <h2><span class="num">2</span> <span data-i18n="dropHead">Drop Files</span></h2>
+      <label class="drop" id="dropZone">
+        <input type="file" id="fileInput" multiple accept=".csv,.txt,.json" />
+        <div class="icon">⌁</div>
+        <div data-i18n="dropTitle">Drop CSV / TXT here</div>
+        <div class="hint" data-i18n="dropHint">or click to browse</div>
+      </label>
+      <div class="type-legend">
+        <span data-i18n="detectsLabel">Auto-detects:</span><br/>
+        <span style="color:#c4a484">▸ Cp/Rs</span> &nbsp;
+        <span style="color:#8eb8a8">▸ D/Z</span> &nbsp;
+        <span style="color:#a89dc9">▸ Phase</span>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2><span class="num">3</span> <span data-i18n="plotStyleHead">Plot Style</span></h2>
+      <div class="style-row">
+        <label class="switch">
+          <input type="checkbox" id="bareBgToggle" />
+          <span class="slider"></span>
+        </label>
+        <div class="style-label">
+          <div data-i18n="bareBgTitle">Bare background</div>
+          <div class="style-hint" data-i18n="bareBgHint">Off: journal-figure style (white plot, black axes). On: transparent plot, theme-aware axes.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2><span class="num">4</span> <span data-i18n="saveLoadHead">Save / Load</span></h2>
+      <div class="save-load-grid">
+        <button class="action" id="saveJsonBtn" title="Save just data and settings (small file)">
+          <span data-i18n="saveSessionJson">⇣ Session (.json)</span>
+        </button>
+        <button class="action" id="saveHtmlBtn" title="Save as standalone HTML — opens with double-click, no app needed">
+          <span data-i18n="saveSessionHtml">⇣ Standalone (.html)</span>
+        </button>
+        <button class="action" id="loadSessionBtn" title="Load a previously saved .json session">
+          <span data-i18n="loadSession">⇡ Load session</span>
+        </button>
+        <input type="file" id="loadSessionFile" accept=".json" style="display:none" />
+      </div>
+      <div class="style-hint" style="margin-top:8px;" data-i18n="saveLoadHint">.json is small and quick; .html embeds everything for sharing or archiving.</div>
+    </div>
+
+    <div class="section">
+      <h2><span class="num">5</span> <span data-i18n="tipsHead">Tips</span></h2>
+      <div style="font-family:'JetBrains Mono',monospace; font-size:10.5px; color:var(--ink-faint); line-height:1.8;" data-i18n-html="tipsHtml">
+        ▸ Click the colored dot to recolor a sample<br/>
+        ▸ The ●/○ button toggles visibility on plots<br/>
+        ▸ Each plot has its own aspect-ratio dropdown<br/>
+        ▸ Click ⇣ on any plot to save as PNG<br/>
+        ▸ Use the comparison card to compare specific frequencies
+      </div>
+    </div>
+  </aside>
+
+  <main>
+    <div id="plotsContainer">
+      <div class="empty-state" id="emptyState">
+        <div class="big">⌁</div>
+        <div data-i18n="emptyHeadline">No data yet — drop files on the left to begin.</div>
+        <div class="tips" data-i18n-html="emptyTipsHtml">
+          <div><span class="k">▸</span> Reads HIOKI LCR meter exports (header on row 17).</div>
+          <div><span class="k">▸</span> Files are merged by FREQUENCY column.</div>
+          <div><span class="k">▸</span> Upload <span class="k">Cp/Rs</span>, <span class="k">D/Z</span>, <span class="k">Phase</span> files for each sample.</div>
+          <div><span class="k">▸</span> EIS curve auto-calculated: &nbsp; Z′ = |Z|·cos θ , &nbsp; Z″ = |Z|·sin θ</div>
+          <div><span class="k">▸</span> Add multiple samples to overlay them on every plot.</div>
+        </div>
+      </div>
+
+      <div class="plot-grid" id="plotGrid" style="display:none;">
+
+        <div class="plot-card">
+          <div class="card-head">
+            <div class="titles">
+              <h3 class="plot-title"><span data-i18n="cpTitle">Parallel Capacitance</span> <em data-i18n="cpTitleSuffix">Cp</em></h3>
+              <div class="plot-sub" data-i18n="cpSub">Cp vs frequency &nbsp;·&nbsp; log–log</div>
+            </div>
+            <div class="card-tools" data-plot="cp"></div>
+          </div>
+          <div class="plot-wrap"><div class="plot" id="plot_cp"></div></div>
+        </div>
+
+        <div class="plot-card">
+          <div class="card-head">
+            <div class="titles">
+              <h3 class="plot-title"><span data-i18n="rsTitle">Series Resistance</span> <em data-i18n="rsTitleSuffix">Rs</em></h3>
+              <div class="plot-sub" data-i18n="rsSub">Rs vs frequency &nbsp;·&nbsp; log–log</div>
+            </div>
+            <div class="card-tools" data-plot="rs"></div>
+          </div>
+          <div class="plot-wrap"><div class="plot" id="plot_rs"></div></div>
+        </div>
+
+        <div class="plot-card">
+          <div class="card-head">
+            <div class="titles">
+              <h3 class="plot-title"><span data-i18n="dTitle">Dissipation Factor</span> <em data-i18n="dTitleSuffix">D = tan δ</em></h3>
+              <div class="plot-sub" data-i18n="dSub">D vs frequency &nbsp;·&nbsp; semi-log</div>
+            </div>
+            <div class="card-tools" data-plot="d"></div>
+          </div>
+          <div class="plot-wrap"><div class="plot" id="plot_d"></div></div>
+        </div>
+
+        <div class="plot-card">
+          <div class="card-head">
+            <div class="titles">
+              <h3 class="plot-title"><span data-i18n="dAucTitle">D — Area Under Curve</span></h3>
+              <div class="plot-sub" data-i18n="dAucSub">∫ D · d(log₁₀ f) &nbsp;·&nbsp; integrated dissipation per sample</div>
+            </div>
+            <div class="card-tools" data-plot="d_auc"></div>
+          </div>
+          <div class="plot-wrap"><div class="plot" id="plot_d_auc"></div></div>
+        </div>
+
+        <div class="plot-card">
+          <div class="card-head">
+            <div class="titles">
+              <h3 class="plot-title"><span data-i18n="nyquistTitle">Nyquist Plot</span> <em data-i18n="nyquistTitleSuffix">— EIS</em></h3>
+              <div class="plot-sub" data-i18n="nyquistSub">−Z″ vs Z′ &nbsp;·&nbsp; complex impedance plane</div>
+            </div>
+            <div class="card-tools" data-plot="nyquist"></div>
+          </div>
+          <div class="plot-wrap"><div class="plot" id="plot_nyquist"></div></div>
+        </div>
+
+        <div class="plot-card">
+          <div class="card-head">
+            <div class="titles">
+              <h3 class="plot-title"><span data-i18n="bodeMagTitle">Bode</span> <em data-i18n="bodeMagTitleSuffix">— magnitude</em></h3>
+              <div class="plot-sub" data-i18n="bodeMagSub">|Z| vs frequency &nbsp;·&nbsp; log–log</div>
+            </div>
+            <div class="card-tools" data-plot="bode_mag"></div>
+          </div>
+          <div class="plot-wrap"><div class="plot" id="plot_bode_mag"></div></div>
+        </div>
+
+        <div class="plot-card">
+          <div class="card-head">
+            <div class="titles">
+              <h3 class="plot-title"><span data-i18n="bodePhaseTitle">Bode</span> <em data-i18n="bodePhaseTitleSuffix">— phase</em></h3>
+              <div class="plot-sub" data-i18n="bodePhaseSub">θ vs frequency &nbsp;·&nbsp; semi-log</div>
+            </div>
+            <div class="card-tools" data-plot="bode_phase"></div>
+          </div>
+          <div class="plot-wrap"><div class="plot" id="plot_bode_phase"></div></div>
+        </div>
+
+        <div class="plot-card compare">
+          <div class="card-head">
+            <div class="titles">
+              <h3 class="plot-title"><span data-i18n="compareTitle">Cross-Sample Comparison</span> <em data-i18n="compareTitleSuffix">— at fixed frequency</em></h3>
+              <div class="plot-sub" data-i18n="compareSub">Compare any metric across samples at specific frequencies</div>
+            </div>
+            <div class="card-tools" data-plot="compare"></div>
+          </div>
+
+          <div class="compare-controls">
+            <div class="ctrl-block">
+              <label data-i18n="cmpAxesLabel">Y axes (up to 4)</label>
+              <div class="y-axis-rows">
+                <div class="y-axis-row">
+                  <span class="y-axis-tag" style="background:#000000">Y1</span>
+                  <select id="cmpY1Metric" class="y-axis-metric">
+                    <option value="cp">Cp  ·  F</option>
+                    <option value="rs">Rs  ·  Ω</option>
+                    <option value="d">D  ·  tan δ</option>
+                    <option value="z">|Z|  ·  Ω</option>
+                    <option value="phase">θ  ·  deg</option>
+                    <option value="zReal">Z′  ·  Ω</option>
+                    <option value="zImag">Z″  ·  Ω</option>
+                  </select>
+                </div>
+                <div class="y-axis-row">
+                  <span class="y-axis-tag" style="background:#c00000">Y2</span>
+                  <select id="cmpY2Metric" class="y-axis-metric">
+                    <option value="" data-i18n="cmpY2None">— none —</option>
+                    <option value="cp">Cp  ·  F</option>
+                    <option value="rs">Rs  ·  Ω</option>
+                    <option value="d">D  ·  tan δ</option>
+                    <option value="z">|Z|  ·  Ω</option>
+                    <option value="phase">θ  ·  deg</option>
+                    <option value="zReal">Z′  ·  Ω</option>
+                    <option value="zImag">Z″  ·  Ω</option>
+                  </select>
+                </div>
+                <div class="y-axis-row">
+                  <span class="y-axis-tag" style="background:#1f4eb8">Y3</span>
+                  <select id="cmpY3Metric" class="y-axis-metric">
+                    <option value="">— none —</option>
+                    <option value="cp">Cp  ·  F</option>
+                    <option value="rs">Rs  ·  Ω</option>
+                    <option value="d">D  ·  tan δ</option>
+                    <option value="z">|Z|  ·  Ω</option>
+                    <option value="phase">θ  ·  deg</option>
+                    <option value="zReal">Z′  ·  Ω</option>
+                    <option value="zImag">Z″  ·  Ω</option>
+                  </select>
+                </div>
+                <div class="y-axis-row">
+                  <span class="y-axis-tag" style="background:#1f7a3a">Y4</span>
+                  <select id="cmpY4Metric" class="y-axis-metric">
+                    <option value="">— none —</option>
+                    <option value="cp">Cp  ·  F</option>
+                    <option value="rs">Rs  ·  Ω</option>
+                    <option value="d">D  ·  tan δ</option>
+                    <option value="z">|Z|  ·  Ω</option>
+                    <option value="phase">θ  ·  deg</option>
+                    <option value="zReal">Z′  ·  Ω</option>
+                    <option value="zImag">Z″  ·  Ω</option>
+                  </select>
+                </div>
+              </div>
+              <label style="margin-top:10px;" data-i18n="yScaleLabel">Y1 scale</label>
+              <select id="cmpScale">
+                <option value="linear" data-i18n="yScaleLinear">Linear</option>
+                <option value="log" data-i18n="yScaleLog" selected>Log</option>
+              </select>
+            </div>
+            <div class="ctrl-block">
+              <label data-i18n="addFreqLabel">Add frequency  (Hz)</label>
+              <input type="text" id="cmpFreqInput" />
+              <div class="quick-freq" id="quickFreq"></div>
+              <div id="cmpFreqList" class="freq-chips"></div>
+            </div>
+            <div class="ctrl-block">
+              <label data-i18n="chartTypeLabel">Chart type</label>
+              <select id="cmpChart">
+                <option value="auto" data-i18n="chartAuto">Auto (smart)</option>
+                <option value="bar" data-i18n="chartBar">Bar</option>
+                <option value="scatter" data-i18n="chartScatter">Scatter / line</option>
+                <option value="points" data-i18n="chartPoints">Scatter (points only)</option>
+              </select>
+              <div style="font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--ink-faint); margin-top:10px; line-height:1.5;" data-i18n="autoHint">
+                Each Y axis gets its own color. Samples on the same axis differ by marker symbol.  Y3 and Y4 are drawn to the right of Y2.
+              </div>
+            </div>
+          </div>
+
+          <details class="cmp-debug" id="cmpDebug">
+            <summary>📊 Show interpolated values  (diagnostics — values shown match the chart)</summary>
+            <div class="cmp-debug-body" id="cmpDebugBody"></div>
+          </details>
+
+          <div class="plot-wrap"><div class="plot" id="plot_compare"></div></div>
+        </div>
+
+      </div>
+    </div>
+  </main>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============================================================
+   STATE
+   ============================================================ */
+// Origin-derived 8-color palette (matching the reference scientific-plotter
+// spec). These are slightly muted vs. pure saturated, which is what Origin's
+// rendered plots actually look like (the swatches in the picker are
+// saturated, but with anti-aliasing and the small marker size, they read as
+// these tones in print). Better for multi-series visual separation than
+// Origin's raw Candy list.
+const PALETTE = [
+  '#000000', // 1. Black
+  '#c00000', // 2. Red
+  '#1f4eb8', // 3. Blue
+  '#1f7a3a', // 4. Green
+  '#9c1f7a', // 5. Magenta / wine
+  '#c87000', // 6. Orange / amber
+  '#5a5a5a', // 7. Grey
+  '#d8a200', // 8. Gold
+];
+
+const PLOT_IDS = ['cp','rs','d','d_auc','nyquist','bode_mag','bode_phase','compare'];
+const ASPECT_OPTIONS = [
+  { v: '16:9',  w: 16, h: 9 },
+  { v: '4:3',   w: 4,  h: 3 },
+  { v: '3:2',   w: 3,  h: 2 },
+  { v: '1:1',   w: 1,  h: 1 },
+  { v: '2:3',   w: 2,  h: 3 },
+  { v: '21:9',  w: 21, h: 9 },
+];
+const DEFAULT_ASPECT = {
+  cp:         '4:3',
+  rs:         '4:3',
+  d:          '4:3',
+  d_auc:      '4:3',
+  nyquist:    '4:3',
+  bode_mag:   '4:3',
+  bode_phase: '4:3',
+  compare:    '4:3',
+};
+const plotAspect = Object.assign({}, DEFAULT_ASPECT);
+
+// Per-plot style: font sizes for axis title / tick labels / legend, plus
+// trace line width and marker size, plus legend position and smoothing.
+//   axisTitle / tickLabel / legend: text sizes
+//   lineWidth: trace line thickness
+//   markerSize: trace marker size (diameter, in plotly units)
+//   legendPos: 'tl' | 'tc' | 'tr' | 'ml' | 'mr' | 'bl' | 'bc' | 'br' | 'or'
+//              (or = outside-right, for many traces)
+//   smoothing: 0 → straight lines; 0.1–1.3 → spline smoothing factor
+const DEFAULT_FONTS = {
+  axisTitle: 22, tickLabel: 19, legend: 15,
+  lineWidth: 1.75, markerSize: 12,
+  legendPos: 'tl', smoothing: 0,
+  yZoom: 1.0,    // 1.0 = nice-range; <1 zooms in; >1 zooms out
+};
+const plotFonts = {};
+PLOT_IDS.forEach(k => { plotFonts[k] = { ...DEFAULT_FONTS }; });
+
+// Transparent background toggle (sidebar). When ON, on-screen plots have no
+// fill and exported PNGs/SVGs have no background fill — useful for
+// compositing into slides/papers.
+let transparentBg = false;
+
+let state = { samples: [], activeId: null };
+let nextId = 1;
+
+// Comparison-card state. Up to 4 Y axes, indexed 0..3 for Y1..Y4.
+// metrics[0] is the primary Y (required); 1..3 are optional secondaries.
+let cmpState = {
+  metrics: ['cp', '', '', ''],   // Y1, Y2, Y3, Y4 — empty string = inactive
+  freqs: [],
+  chart: 'auto',
+  scale: 'log',                  // default log so wide-range data (Rs, |Z|) is readable
+                                 // applies to Y1 only; Y2/Y3/Y4 auto-scaled
+};
+
+// Origin's convention: each Y axis has its own color, traces inherit it.
+// Sample identity comes through marker symbol cycling.
+const Y_AXIS_COLORS = ['#000000', '#c00000', '#1f4eb8', '#1f7a3a'];
+// Marker symbols cycle per sample on each axis (Plotly built-in symbols).
+const MARKER_SYMBOLS = ['circle', 'square', 'diamond', 'triangle-up', 'triangle-down', 'cross', 'x-thin', 'star', 'hexagon', 'pentagon'];
+// Line dashes — also cycle per sample so colour-blind users / B&W prints can distinguish.
+const LINE_DASHES = ['solid', 'dash', 'dot', 'dashdot', 'longdash', 'longdashdot'];
+
+/* ============================================================
+   THEME & LOCALE
+   ============================================================ */
+// Read persisted preferences. Default theme: dark. Default locale: en.
+let currentTheme = 'dark';
+let currentLocale = 'en';
+try {
+  const t = localStorage.getItem('eis_theme');
+  if (t === 'light' || t === 'dark') currentTheme = t;
+  const l = localStorage.getItem('eis_locale');
+  if (l === 'ko' || l === 'en') currentLocale = l;
+} catch (e) { /* localStorage not available — fine */ }
+
+// Strings dictionary. Add new keys here; missing keys fall back to English.
+const STRINGS = {
+  en: {
+    // header
+    appTitle: 'LCR · EIS Workbench',
+    appSubtitle: 'HIOKI IM35xx · multi-sample comparator',
+    exportCsvBtn: '⇣ CSV',
+    resetBtn: '⊗ Reset',
+    themeDarkLabel: 'Dark',
+    themeLightLabel: 'Light',
+    // sidebar
+    samplesHead: 'Samples',
+    dropHead: 'Drop Files',
+    tipsHead: 'Tips',
+    plotStyleHead: 'Plot Style',
+    bareBgTitle: 'Transparent background',
+    bareBgHint: 'Off: white plot background (default, journal-style). On: transparent — PNG/SVG saves with no background fill.',
+    dropTitle: 'Drop CSV / TXT here',
+    dropHint: 'or click to browse',
+    detectsLabel: 'Auto-detects:',
+    newSample: '＋ New Sample',
+    noSamplesYet: 'No samples yet.',
+    tipsHtml: '▸ Click the colored dot to recolor a sample<br/>▸ The ●/○ button toggles visibility on plots<br/>▸ Each plot has its own aspect-ratio dropdown<br/>▸ Click ⇣ on any plot to save as PNG/SVG/JPEG<br/>▸ Click A to adjust font sizes<br/>▸ Use the comparison card to compare specific frequencies',
+    // empty state
+    emptyHeadline: 'No data yet — drop files on the left to begin.',
+    emptyTipsHtml: '<div><span class="k">▸</span> Reads HIOKI LCR meter exports (header on row 17).</div><div><span class="k">▸</span> Files are merged by FREQUENCY column.</div><div><span class="k">▸</span> Upload <span class="k">Cp/Rs</span>, <span class="k">D/Z</span>, <span class="k">Phase</span> files for each sample.</div><div><span class="k">▸</span> EIS curve auto-calculated: &nbsp; Z′ = |Z|·cos θ , &nbsp; Z″ = |Z|·sin θ</div><div><span class="k">▸</span> Add multiple samples to overlay them on every plot.</div>',
+    // plot titles + subtitles
+    nyquistTitle: 'Nyquist Plot',
+    nyquistTitleSuffix: '— EIS',
+    nyquistSub: '−Z″ vs Z′ · complex impedance plane',
+    bodeMagTitle: 'Bode',
+    bodeMagTitleSuffix: '— magnitude',
+    bodeMagSub: '|Z| vs frequency · log–log',
+    bodePhaseTitle: 'Bode',
+    bodePhaseTitleSuffix: '— phase',
+    bodePhaseSub: 'θ vs frequency · semi-log',
+    cpTitle: 'Parallel Capacitance',
+    cpTitleSuffix: 'Cp',
+    cpSub: 'Cp vs frequency · log–log',
+    rsTitle: 'Series Resistance',
+    rsTitleSuffix: 'Rs',
+    rsSub: 'Rs vs frequency · log–log',
+    dTitle: 'Dissipation Factor',
+    dTitleSuffix: 'D = tan δ',
+    dSub: 'D vs frequency · semi-log',
+    compareTitle: 'Cross-Sample Comparison',
+    compareTitleSuffix: '— at fixed frequency',
+    compareSub: 'Compare any metric across samples at specific frequencies',
+    // compare controls
+    metricLabel: 'Metric',
+    yScaleLabel: 'Y-axis scale',
+    yScaleLinear: 'Linear',
+    yScaleLog: 'Log',
+    addFreqLabel: 'Add frequency  (Hz)',
+    addFreqPlaceholder: 'e.g.  5,  100,  1k,  100k,  1M  — press Enter',
+    chartTypeLabel: 'Chart type',
+    chartAuto: 'Auto (smart)',
+    chartBar: 'Bar',
+    chartScatter: 'Scatter / line',
+    autoHint: 'Auto picks bar for ≤4 frequencies, scatter beyond that. Values are log-interpolated between sweep points.',
+    addLabel: '+ ',
+    // axis titles for plots
+    axisFreq: 'Frequency  (Hz)',
+    axisZreal: 'Z′  (Real,  Ω)',
+    axisZimagNeg: '−Z″  (−Imag,  Ω)',
+    axisZmag: '|Z|  (Ω)',
+    axisPhase: 'θ  (degrees)',
+    axisCp: 'Cp  (F)',
+    axisRs: 'Rs  (Ω)',
+    axisD: 'D  (tan δ)',
+    axisDAuc: '∫ D · d(log f)',
+    axisSample: 'Sample',
+    dAucTitle: 'D — Area Under Curve',
+    dAucSub: '∫ D · d(log₁₀ f)  ·  integrated dissipation per sample',
+    noDDataAuc: 'No D data loaded — upload D/Z file to see AUC',
+    cmpY2Label: 'Second Y axis (optional)',
+    cmpY2None: '— none —',
+    chartPoints: 'Scatter (points only)',
+    fontLegendPos: 'Legend position',
+    fontSmoothing: 'Smoothing',
+    legendPosTL: 'Top-left',
+    legendPosTC: 'Top-center',
+    legendPosTR: 'Top-right',
+    legendPosML: 'Middle-left',
+    legendPosMC: 'Middle-center',
+    legendPosMR: 'Middle-right',
+    legendPosBL: 'Bottom-left',
+    legendPosBC: 'Bottom-center',
+    legendPosBR: 'Bottom-right',
+    legendPosOR: 'Outside right',
+    // toasts / messages
+    loadedFiles: (n, name) => `Loaded ${n} file${n>1?'s':''} into "${name}"`,
+    exportedCsv: (n) => `Exported ${n} CSV file${n>1?'s':''}`,
+    exporting: (key, fmt, w, h) => `Exporting ${key}.${fmt} (${w}×${h})`,
+    nothingToExport: 'Nothing to export on this plot',
+    noValidFreq: 'No valid frequency parsed',
+    confirmDeleteSample: (name) => `Delete "${name}"?`,
+    confirmReset: 'Remove all samples and files?',
+    deleteSample: 'Delete sample',
+    toggleVisible: 'Toggle visibility',
+    changeColor: 'Change color',
+    bulkVisible: 'visible',
+    bulkShowAll: 'Show all',
+    bulkHideAll: 'Hide all',
+    bulkInvert: 'Invert',
+    colorPresets: 'Presets',
+    colorRecent: 'Recent custom',
+    colorNoRecent: 'No custom colors yet.',
+    colorPickCustom: 'Pick custom…',
+    colorClear: 'Clear',
+    colorClearRecent: 'Clear recent custom colors',
+    saveLoadHead: 'Save / Load',
+    saveLoadHint: '.json is small and quick; .html embeds everything for sharing or archiving.',
+    saveSession: 'Save session',
+    saveSessionJson: '⇣ Session (.json)',
+    saveSessionHtml: '⇣ Standalone (.html)',
+    loadSession: '⇡ Load session',
+    exportCsvZip: 'Export all data (zip)',
+    sessionSaved: (filename) => `Session saved: ${filename}`,
+    sessionLoaded: (n) => `Loaded ${n} sample${n>1?'s':''} from session`,
+    sessionLoadFailed: 'Could not load session — file may be corrupted or from an incompatible version',
+    csvZipExported: (n) => `Exported ${n} CSV files (zip)`,
+    csvZipNoData: 'Nothing to export — load samples first',
+    jsZipLoading: 'Loading zip library…',
+    fontAxisTitle: 'Axis titles',
+    fontTickLabel: 'Tick labels',
+    fontLegend: 'Legend',
+    fontLineWidth: 'Line width',
+    fontMarkerSize: 'Marker size',
+    fontSectionText: 'Text',
+    fontSectionTrace: 'Trace',
+    fontSectionAxis: 'Axis',
+    fontYZoom: 'Y zoom',
+    fontYZoomHint: 'Scale Y axis range. 1× = data-fit; <1× = zoom in; >1× = zoom out. Also: drag axis numbers to stretch · scroll wheel inside plot · double-click to reset.',
+    fontReset: 'Reset',
+    fontApplyAll: 'Apply to all plots',
+    fontHint: 'Affects both on-screen and downloaded files. Exports get a small +2/+3 bump for high-DPI readability.',
+    fontPopTitle: 'Font sizes',
+    noDataForMetric: (metric) => `No ${metric} data in loaded files — upload the file containing this measurement`,
+    addFreqHint: 'Add one or more frequencies above to compare samples',
+    uploadFirst: 'Upload sample data first',
+    fontsAppliedAll: 'Font sizes applied to all plots',
+    exportFailed: (msg) => `Export failed: ${msg}`,
+  },
+  ko: {
+    appTitle: 'LCR · EIS 워크벤치',
+    appSubtitle: 'HIOKI IM35xx · 다중 샘플 비교 도구',
+    exportCsvBtn: '⇣ CSV',
+    resetBtn: '⊗ 초기화',
+    themeDarkLabel: '다크',
+    themeLightLabel: '라이트',
+    samplesHead: '샘플',
+    dropHead: '파일 끌어놓기',
+    tipsHead: '도움말',
+    plotStyleHead: '그래프 스타일',
+    bareBgTitle: '투명 배경',
+    bareBgHint: '꺼짐: 흰 배경 (기본). 켜짐: 투명 — PNG/SVG가 배경 없이 저장됩니다.',
+    dropTitle: 'CSV / TXT 파일을 여기에 놓으세요',
+    dropHint: '또는 클릭하여 찾아보기',
+    detectsLabel: '자동 감지:',
+    newSample: '＋ 새 샘플',
+    noSamplesYet: '아직 샘플이 없습니다.',
+    tipsHtml: '▸ 색상 점을 클릭하여 샘플 색상을 변경<br/>▸ ●/○ 버튼으로 그래프 표시 여부 전환<br/>▸ 각 그래프마다 화면 비율 설정 가능<br/>▸ ⇣ 버튼으로 PNG/SVG/JPEG 저장<br/>▸ A 버튼으로 글자 크기 조정<br/>▸ 비교 카드로 특정 주파수에서 비교',
+    emptyHeadline: '데이터가 없습니다 — 왼쪽에 파일을 끌어놓아 시작하세요.',
+    emptyTipsHtml: '<div><span class="k">▸</span> HIOKI LCR 미터 내보내기 파일을 읽습니다 (17행 헤더).</div><div><span class="k">▸</span> FREQUENCY 열 기준으로 파일이 병합됩니다.</div><div><span class="k">▸</span> 샘플마다 <span class="k">Cp/Rs</span>, <span class="k">D/Z</span>, <span class="k">위상</span> 파일을 업로드하세요.</div><div><span class="k">▸</span> EIS 곡선 자동 계산: &nbsp; Z′ = |Z|·cos θ , &nbsp; Z″ = |Z|·sin θ</div><div><span class="k">▸</span> 여러 샘플을 추가하여 모든 그래프에 겹쳐 볼 수 있습니다.</div>',
+    nyquistTitle: '나이퀴스트 도표',
+    nyquistTitleSuffix: '— EIS',
+    nyquistSub: '−Z″ vs Z′ · 복소 임피던스 평면',
+    bodeMagTitle: '보드',
+    bodeMagTitleSuffix: '— 크기',
+    bodeMagSub: '|Z| vs 주파수 · 로그–로그',
+    bodePhaseTitle: '보드',
+    bodePhaseTitleSuffix: '— 위상',
+    bodePhaseSub: 'θ vs 주파수 · 반로그',
+    cpTitle: '병렬 정전용량',
+    cpTitleSuffix: 'Cp',
+    cpSub: 'Cp vs 주파수 · 로그–로그',
+    rsTitle: '직렬 저항',
+    rsTitleSuffix: 'Rs',
+    rsSub: 'Rs vs 주파수 · 로그–로그',
+    dTitle: '손실 계수',
+    dTitleSuffix: 'D = tan δ',
+    dSub: 'D vs 주파수 · 반로그',
+    compareTitle: '샘플 간 비교',
+    compareTitleSuffix: '— 고정 주파수에서',
+    compareSub: '특정 주파수에서 샘플 간 측정값 비교',
+    metricLabel: '측정값',
+    yScaleLabel: 'Y축 스케일',
+    yScaleLinear: '선형',
+    yScaleLog: '로그',
+    addFreqLabel: '주파수 추가  (Hz)',
+    addFreqPlaceholder: '예:  5,  100,  1k,  100k,  1M  — Enter 키',
+    chartTypeLabel: '차트 유형',
+    chartAuto: '자동 (스마트)',
+    chartBar: '막대',
+    chartScatter: '산점도 / 선',
+    autoHint: '주파수 4개 이하면 막대, 그 이상이면 산점도. 측정점 사이 값은 로그 보간됩니다.',
+    addLabel: '+ ',
+    axisFreq: '주파수  (Hz)',
+    axisZreal: 'Z′  (실수,  Ω)',
+    axisZimagNeg: '−Z″  (−허수,  Ω)',
+    axisZmag: '|Z|  (Ω)',
+    axisPhase: 'θ  (도)',
+    axisCp: 'Cp  (F)',
+    axisRs: 'Rs  (Ω)',
+    axisD: 'D  (tan δ)',
+    axisDAuc: '∫ D · d(log f)',
+    axisSample: '샘플',
+    dAucTitle: 'D — 곡선 아래 면적',
+    dAucSub: '∫ D · d(log₁₀ f)  ·  샘플별 누적 손실',
+    noDDataAuc: 'D 데이터가 없습니다 — D/Z 파일을 업로드하세요',
+    cmpY2Label: '두 번째 Y축 (선택)',
+    cmpY2None: '— 없음 —',
+    chartPoints: '산점도 (점만)',
+    fontLegendPos: '범례 위치',
+    fontSmoothing: '곡선 부드럽게',
+    legendPosTL: '좌상',
+    legendPosTC: '상중',
+    legendPosTR: '우상',
+    legendPosML: '좌중',
+    legendPosMC: '중앙',
+    legendPosMR: '우중',
+    legendPosBL: '좌하',
+    legendPosBC: '하중',
+    legendPosBR: '우하',
+    legendPosOR: '바깥 오른쪽',
+    loadedFiles: (n, name) => `${n}개 파일을 "${name}"에 추가했습니다`,
+    exportedCsv: (n) => `${n}개 CSV 파일을 내보냈습니다`,
+    exporting: (key, fmt, w, h) => `${key}.${fmt} 내보내는 중 (${w}×${h})`,
+    nothingToExport: '이 그래프에 내보낼 데이터가 없습니다',
+    noValidFreq: '유효한 주파수가 인식되지 않았습니다',
+    confirmDeleteSample: (name) => `"${name}"을(를) 삭제할까요?`,
+    confirmReset: '모든 샘플과 파일을 제거할까요?',
+    deleteSample: '샘플 삭제',
+    toggleVisible: '표시 전환',
+    changeColor: '색상 변경',
+    bulkVisible: '표시 중',
+    bulkShowAll: '모두 표시',
+    bulkHideAll: '모두 숨김',
+    bulkInvert: '반전',
+    colorPresets: '기본 색',
+    colorRecent: '최근 사용 색',
+    colorNoRecent: '최근 색이 없습니다.',
+    colorPickCustom: '직접 선택…',
+    colorClear: '지우기',
+    colorClearRecent: '최근 사용 색 지우기',
+    saveLoadHead: '저장 / 불러오기',
+    saveLoadHint: '.json 은 작고 빠릅니다. .html 은 모든 정보를 포함합니다.',
+    saveSession: '세션 저장',
+    saveSessionJson: '⇣ 세션 (.json)',
+    saveSessionHtml: '⇣ 독립 HTML (.html)',
+    loadSession: '⇡ 세션 불러오기',
+    exportCsvZip: '전체 데이터 내보내기 (zip)',
+    sessionSaved: (filename) => `세션 저장됨: ${filename}`,
+    sessionLoaded: (n) => `세션에서 ${n}개 샘플을 불러왔습니다`,
+    sessionLoadFailed: '세션을 불러올 수 없습니다 — 파일이 손상되었거나 호환되지 않는 버전입니다',
+    csvZipExported: (n) => `${n}개 CSV 파일을 zip으로 내보냈습니다`,
+    csvZipNoData: '내보낼 데이터가 없습니다 — 샘플을 먼저 불러오세요',
+    jsZipLoading: 'zip 라이브러리 로드 중…',
+    fontAxisTitle: '축 제목',
+    fontTickLabel: '눈금 라벨',
+    fontLegend: '범례',
+    fontLineWidth: '선 굵기',
+    fontMarkerSize: '점 크기',
+    fontSectionText: '글자',
+    fontSectionTrace: '선 / 점',
+    fontSectionAxis: '축',
+    fontYZoom: 'Y 확대/축소',
+    fontYZoomHint: 'Y 축 범위 배율. 1× = 데이터 맞춤; <1× = 확대; >1× = 축소. 또한: 축 숫자를 끌어 늘이기 · 마우스 휠로 확대/축소 · 더블클릭으로 초기화.',
+    fontReset: '초기화',
+    fontApplyAll: '모든 그래프에 적용',
+    fontHint: '화면과 저장 파일 모두에 적용됩니다. 내보낼 때 고해상도 가독성을 위해 +2/+3 크기로 조정됩니다.',
+    fontPopTitle: '글자 크기',
+    noDataForMetric: (metric) => `로드된 파일에 ${metric} 데이터가 없습니다 — 해당 측정값이 포함된 파일을 업로드하세요`,
+    addFreqHint: '위에 주파수를 하나 이상 추가하면 샘플을 비교할 수 있습니다',
+    uploadFirst: '먼저 샘플 데이터를 업로드하세요',
+    fontsAppliedAll: '모든 그래프에 글자 크기가 적용되었습니다',
+    exportFailed: (msg) => `내보내기 실패: ${msg}`,
+  },
+};
+
+function t(key, ...args) {
+  const dict = STRINGS[currentLocale] || STRINGS.en;
+  let v = dict[key];
+  if (v === undefined) v = STRINGS.en[key];
+  if (typeof v === 'function') return v(...args);
+  return v != null ? v : key;
+}
+
+// Read a CSS variable value at runtime (after theme switch). Used for plot colors.
+function cssVar(name) {
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+}
+
+function applyTheme(theme) {
+  currentTheme = theme;
+  document.documentElement.setAttribute('data-theme', theme);
+  try { localStorage.setItem('eis_theme', theme); } catch (e) {}
+  // Plots embed the theme colors in their layout, so we need to redraw them.
+  if (typeof renderAll === 'function') renderAll();
+  updateThemeToggleUI();
+}
+
+function applyLocale(loc) {
+  currentLocale = loc;
+  try { localStorage.setItem('eis_locale', loc); } catch (e) {}
+  // Re-render all static text and plots
+  applyStaticStrings();
+  if (typeof renderSidebar === 'function') renderSidebar();
+  if (typeof renderQuickFreqs === 'function') renderQuickFreqs();
+  if (typeof renderCmpFreqChips === 'function') renderCmpFreqChips();
+  if (typeof renderAll === 'function') renderAll();
+  updateLocaleToggleUI();
+}
+
+function updateThemeToggleUI() {
+  const btn = document.getElementById('themeToggle');
+  if (!btn) return;
+  btn.textContent = currentTheme === 'dark' ? '☾  ' + t('themeDarkLabel') : '☼  ' + t('themeLightLabel');
+  btn.setAttribute('aria-pressed', currentTheme === 'dark');
+}
+
+function updateLocaleToggleUI() {
+  const btn = document.getElementById('localeToggle');
+  if (!btn) return;
+  btn.textContent = currentLocale === 'en' ? 'EN  /  한' : '한  /  EN';
+}
+
+// Plot theme colors derived from CSS vars
+function plotTheme() {
+  // Read live to pick up theme changes
+  const ink = cssVar('--ink') || '#e6e8eb';
+  const inkDim = cssVar('--ink-dim') || '#8b95a1';
+  const grid = cssVar('--grid-hex') || 'rgba(255,255,255,0.06)';
+  const axisLine = cssVar('--axis-line') || 'rgba(255,255,255,0.2)';
+  const axisZero = cssVar('--axis-zero') || 'rgba(255,255,255,0.1)';
+  const legendBg = cssVar('--legend-bg') || 'rgba(18,22,27,0.7)';
+  const legendBorder = cssVar('--legend-border') || 'rgba(255,255,255,0.1)';
+  const panel = cssVar('--panel') || '#12161b';
+  return { ink, inkDim, grid, axisLine, axisZero, legendBg, legendBorder, panel, isDark: currentTheme === 'dark' };
+}
+
+const QUICK_FREQS = [
+  { label: '1 Hz', v: 1 }, { label: '10 Hz', v: 10 },
+  { label: '100 Hz', v: 100 }, { label: '1 kHz', v: 1000 },
+  { label: '10 kHz', v: 10000 }, { label: '100 kHz', v: 100000 },
+];
+
+/* ============================================================
+   PARSER
+   ============================================================ */
+function parseNum(s) {
+  if (s == null) return null;
+  s = String(s).trim().replace(/^"|"$/g, '');
+  if (s === '' || s === '-' || s.toUpperCase() === 'NAN') return null;
+  const n = Number(s);
+  return Number.isFinite(n) ? n : null;
+}
+function splitCsvLine(line) {
+  const out = [];
+  let cur = '', inQ = false;
+  for (let i = 0; i < line.length; i++) {
+    const c = line[i];
+    if (c === '"') { inQ = !inQ; continue; }
+    if (c === ',' && !inQ) { out.push(cur); cur = ''; continue; }
+    cur += c;
+  }
+  out.push(cur);
+  return out.map(s => s.trim());
+}
+function findHeader(lines) {
+  for (let i = 0; i < lines.length; i++) {
+    const cols = splitCsvLine(lines[i]).map(c => c.toUpperCase());
+    const hasFreq = cols.some(c => c.includes('FREQUENCY') || c.includes('FREQ'));
+    const hasMeas = cols.some(c =>
+      /\bCP\b|\bRS\b|\bRP\b|\bLS\b|\bLP\b/.test(c) ||
+      /\bD\b/.test(c) ||
+      /^Z\b|\|Z\|/.test(c) ||
+      c.includes('PHASE') || c.includes('THETA') || c.includes('Θ')
+    );
+    if (hasFreq && hasMeas) return { headerIdx: i, headers: splitCsvLine(lines[i]) };
+  }
+  return null;
+}
+function classifyColumns(headers) {
+  const map = { freq: -1, cp: -1, rs: -1, d: -1, z: -1, phase: -1 };
+  headers.forEach((h, i) => {
+    const u = h.toUpperCase().replace(/[\s"]/g, '');
+    if (map.freq < 0 && (u.includes('FREQUENCY') || u.startsWith('FREQ'))) map.freq = i;
+    else if (map.cp < 0 && /^CP(\[|\(|$)/.test(u)) map.cp = i;
+    else if (map.rs < 0 && /^RS(\[|\(|$)/.test(u)) map.rs = i;
+    else if (map.d < 0 && /^D(\[|\(|$)/.test(u)) map.d = i;
+    else if (map.z < 0 && (/^Z(\[|\(|$)/.test(u) || u.includes('|Z|'))) map.z = i;
+    else if (map.phase < 0 && (u.includes('PHASE') || u.includes('THETA') || u.includes('Θ'))) map.phase = i;
+  });
+  return map;
+}
+function parseFile(text) {
+  const lines = text.split(/\r\n|\r|\n/);
+  const hdr = findHeader(lines);
+  if (!hdr) throw new Error('No header row with FREQUENCY column');
+  const cols = classifyColumns(hdr.headers);
+  if (cols.freq < 0) throw new Error('No FREQUENCY column detected');
+  const present = [];
+  if (cols.cp >= 0) present.push('cp');
+  if (cols.rs >= 0) present.push('rs');
+  if (cols.d >= 0) present.push('d');
+  if (cols.z >= 0) present.push('z');
+  if (cols.phase >= 0) present.push('phase');
+  if (!present.length) throw new Error('No measurement columns detected');
+  let type;
+  if (present.includes('cp') && present.includes('rs')) type = 'cprs';
+  else if (present.includes('d') && present.includes('z')) type = 'dz';
+  else if (present.includes('phase')) type = 'phase';
+  else type = present.join('+');
+  const rows = [];
+  for (let i = hdr.headerIdx + 1; i < lines.length; i++) {
+    if (!lines[i].trim()) continue;
+    const c = splitCsvLine(lines[i]);
+    const freq = parseNum(c[cols.freq]);
+    if (freq == null) continue;
+    const row = { freq };
+    if (cols.cp >= 0) row.cp = parseNum(c[cols.cp]);
+    if (cols.rs >= 0) row.rs = parseNum(c[cols.rs]);
+    if (cols.d >= 0) row.d = parseNum(c[cols.d]);
+    if (cols.z >= 0) row.z = parseNum(c[cols.z]);
+    if (cols.phase >= 0) row.phase = parseNum(c[cols.phase]);
+    rows.push(row);
+  }
+  if (!rows.length) throw new Error('No data rows found');
+  return { type, rows, present };
+}
+
+/* ============================================================
+   MERGING
+   ============================================================ */
+function mergeSampleFiles(sample) {
+  const freqMap = new Map();
+  const eps = 1e-6;
+  function snapKey(f) {
+    for (const k of freqMap.keys()) {
+      if (Math.abs(Math.log10(k) - Math.log10(f)) < eps) return k;
+    }
+    return f;
+  }
+  for (const file of sample.files) {
+    for (const r of file.data.rows) {
+      const k = snapKey(r.freq);
+      const cur = freqMap.get(k) || { freq: r.freq };
+      if (r.cp != null) cur.cp = r.cp;
+      if (r.rs != null) cur.rs = r.rs;
+      if (r.d != null) cur.d = r.d;
+      if (r.z != null) cur.z = r.z;
+      if (r.phase != null) cur.phase = r.phase;
+      freqMap.set(k, cur);
+    }
+  }
+  const merged = [...freqMap.values()].sort((a,b) => a.freq - b.freq);
+  for (const r of merged) {
+    if (r.z != null && r.phase != null) {
+      const rad = r.phase * Math.PI / 180;
+      r.zReal = r.z * Math.cos(rad);
+      r.zImag = r.z * Math.sin(rad);
+    }
+  }
+  return merged;
+}
+
+/* ============================================================
+   SAMPLE MGMT
+   ============================================================ */
+function createSample(name) {
+  const used = state.samples.map(s => s.color);
+  const color = PALETTE.find(c => !used.includes(c)) || PALETTE[state.samples.length % PALETTE.length];
+  const s = {
+    id: nextId++,
+    name: name || `Sample ${state.samples.length + 1}`,
+    color, visible: true, files: [],
+  };
+  state.samples.push(s);
+  state.activeId = s.id;
+  renderSidebar();
+  renderAll();
+  return s;
+}
+function deleteSample(id) {
+  state.samples = state.samples.filter(s => s.id !== id);
+  if (state.activeId === id) state.activeId = state.samples[0]?.id || null;
+  renderSidebar();
+  renderAll();
+}
+function getActive() { return state.samples.find(s => s.id === state.activeId); }
+
+/* ============================================================
+   SIDEBAR
+   ============================================================ */
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function typeLabel(t) {
+  if (t === 'cprs') return 'Cp/Rs';
+  if (t === 'dz') return 'D/Z';
+  if (t === 'phase') return 'Phase';
+  return t;
+}
+function shortName(n) { return n.length > 16 ? n.slice(0, 14) + '…' : n; }
+
+function renderSidebar() {
+  const list = document.getElementById('sampleList');
+  const cnt = document.getElementById('sampleCount');
+  cnt.textContent = state.samples.length ? `${state.samples.length}` : '';
+  list.innerHTML = '';
+  if (!state.samples.length) {
+    list.innerHTML = `<div style="color:var(--ink-faint); font-size:13px; font-style:italic; padding:8px 0;">${t('noSamplesYet')}</div>`;
+    return;
+  }
+
+  // Bulk actions row: show all / hide all / invert.
+  // Sits at the top so the user can see at a glance how many samples are
+  // active and toggle them all at once.
+  const visibleCount = state.samples.filter(s => s.visible).length;
+  const bulkRow = document.createElement('div');
+  bulkRow.className = 'bulk-row';
+  bulkRow.innerHTML = `
+    <span class="bulk-count">${visibleCount}/${state.samples.length} ${t('bulkVisible')}</span>
+    <button class="bulk-btn" data-act="all">${t('bulkShowAll')}</button>
+    <button class="bulk-btn" data-act="none">${t('bulkHideAll')}</button>
+    <button class="bulk-btn" data-act="invert">${t('bulkInvert')}</button>
+  `;
+  bulkRow.addEventListener('click', (e) => {
+    const a = e.target.dataset.act;
+    if (!a) return;
+    if (a === 'all')    state.samples.forEach(s => s.visible = true);
+    if (a === 'none')   state.samples.forEach(s => s.visible = false);
+    if (a === 'invert') state.samples.forEach(s => s.visible = !s.visible);
+    renderSidebar();
+    renderAll();
+  });
+  list.appendChild(bulkRow);
+
+  for (const s of state.samples) {
+    const row = document.createElement('div');
+    row.className = 'sample-row' + (s.id === state.activeId ? ' active' : '') + (s.visible ? '' : ' off');
+    row.innerHTML = `
+      <button class="vis-btn ${s.visible ? 'on' : ''}" title="${t('toggleVisible')}" data-action="vis" aria-label="${t('toggleVisible')}">
+        ${s.visible
+          ? '<svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3,8 7,12 13,4"/></svg>'
+          : ''}
+      </button>
+      <span class="swatch" style="background:${s.color}" data-action="color" title="${t('changeColor')}"></span>
+      <input class="name" value="${escapeHtml(s.name)}" />
+      <span class="meta">${s.files.length}f</span>
+      <button class="del" title="${t('deleteSample')}" data-action="del">✕</button>
+    `;
+    row.addEventListener('click', (e) => {
+      // Find which interactive element (button/swatch/input) was clicked
+      const btn = e.target.closest('[data-action]');
+      const a = btn && btn.dataset.action;
+      if (e.target.classList.contains('name')) return;
+      if (a === 'del') { if (confirm(t('confirmDeleteSample', s.name))) deleteSample(s.id); return; }
+      if (a === 'vis') { s.visible = !s.visible; renderSidebar(); renderAll(); return; }
+      if (a === 'color') { openColorPicker(btn, s); return; }
+      state.activeId = s.id;
+      renderSidebar();
+    });
+    row.querySelector('.name').addEventListener('input', (e) => {
+      s.name = e.target.value;
+      renderAll();
+    });
+    list.appendChild(row);
+    if (s.files.length) {
+      const fl = document.createElement('div');
+      fl.className = 'file-list';
+      s.files.forEach((f, idx) => {
+        const c = document.createElement('span');
+        c.className = `chip ${f.type}`;
+        c.title = f.name;
+        c.innerHTML = `${typeLabel(f.type)} · ${escapeHtml(shortName(f.name))} <span class="rm">✕</span>`;
+        c.querySelector('.rm').addEventListener('click', (e) => {
+          e.stopPropagation();
+          s.files.splice(idx, 1);
+          renderSidebar();
+          renderAll();
+        });
+        fl.appendChild(c);
+      });
+      list.appendChild(fl);
+    }
+  }
+}
+
+// Recent custom colors — small ring buffer persisted in localStorage so a
+// user's chosen colors are quick to re-pick across sessions.
+const RECENT_COLORS_KEY = 'eis_recent_colors';
+const RECENT_COLORS_MAX = 16;
+
+function getRecentColors() {
+  try {
+    const raw = localStorage.getItem(RECENT_COLORS_KEY);
+    if (!raw) return [];
+    const arr = JSON.parse(raw);
+    return Array.isArray(arr) ? arr.filter(c => /^#[0-9a-fA-F]{6}$/.test(c)) : [];
+  } catch (e) { return []; }
+}
+
+function pushRecentColor(c) {
+  if (!c || !/^#[0-9a-fA-F]{6}$/.test(c)) return;
+  // Don't push if it's already a preset (no point) or already at the front.
+  if (PALETTE.includes(c.toLowerCase()) || PALETTE.includes(c.toUpperCase())) return;
+  const recents = getRecentColors().filter(x => x.toLowerCase() !== c.toLowerCase());
+  recents.unshift(c);
+  while (recents.length > RECENT_COLORS_MAX) recents.pop();
+  try { localStorage.setItem(RECENT_COLORS_KEY, JSON.stringify(recents)); } catch (e) {}
+}
+
+function clearRecentColors() {
+  try { localStorage.removeItem(RECENT_COLORS_KEY); } catch (e) {}
+}
+
+// Validate a hex string typed by the user. Accepts #rgb, #rrggbb,
+// with or without the leading '#'. Returns a normalized '#rrggbb' or null.
+function parseHexInput(s) {
+  if (!s) return null;
+  s = s.trim().replace(/^#/, '');
+  if (/^[0-9a-fA-F]{3}$/.test(s)) {
+    s = s[0]+s[0]+s[1]+s[1]+s[2]+s[2];
+  }
+  if (/^[0-9a-fA-F]{6}$/.test(s)) return '#' + s.toLowerCase();
+  return null;
+}
+
+function openColorPicker(anchor, sample) {
+  // Close any existing popover
+  document.querySelectorAll('.color-popover').forEach(e => e.remove());
+
+  const pop = document.createElement('div');
+  pop.className = 'color-popover';
+
+  // Helper to apply a chosen color: updates sample, re-renders, closes popover
+  function applyColor(c, addToRecents) {
+    sample.color = c;
+    if (addToRecents) pushRecentColor(c);
+    pop.remove();
+    renderSidebar();
+    renderAll();
+  }
+
+  // Helper to make a swatch button
+  function makeSwatch(c, isSelected) {
+    const dot = document.createElement('div');
+    dot.className = 'c' + (isSelected ? ' sel' : '');
+    dot.style.background = c;
+    dot.title = c;
+    return dot;
+  }
+
+  // --- Presets section ---
+  const presetLabel = document.createElement('div');
+  presetLabel.className = 'section-label';
+  presetLabel.innerHTML = `<span>${t('colorPresets')}</span>`;
+  pop.appendChild(presetLabel);
+  const presetGrid = document.createElement('div');
+  presetGrid.className = 'swatch-grid';
+  PALETTE.forEach(c => {
+    const sw = makeSwatch(c, c.toLowerCase() === (sample.color || '').toLowerCase());
+    sw.addEventListener('click', () => applyColor(c, false));
+    presetGrid.appendChild(sw);
+  });
+  pop.appendChild(presetGrid);
+
+  // --- Recent custom colors ---
+  const recents = getRecentColors();
+  const recentLabel = document.createElement('div');
+  recentLabel.className = 'section-label';
+  const clearBtnHtml = recents.length ? `<button class="clear-recent" title="${t('colorClearRecent')}">✕ ${t('colorClear')}</button>` : '';
+  recentLabel.innerHTML = `<span>${t('colorRecent')}</span>${clearBtnHtml}`;
+  pop.appendChild(recentLabel);
+
+  if (recents.length) {
+    const clearBtn = recentLabel.querySelector('.clear-recent');
+    if (clearBtn) clearBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      clearRecentColors();
+      // Re-open the popover to refresh
+      openColorPicker(anchor, sample);
+    });
+    const recentGrid = document.createElement('div');
+    recentGrid.className = 'swatch-grid';
+    recents.forEach(c => {
+      const sw = makeSwatch(c, c.toLowerCase() === (sample.color || '').toLowerCase());
+      sw.addEventListener('click', () => applyColor(c, false));  // already recent, no push
+      recentGrid.appendChild(sw);
+    });
+    pop.appendChild(recentGrid);
+  } else {
+    const empty = document.createElement('div');
+    empty.className = 'empty-recent';
+    empty.textContent = t('colorNoRecent');
+    pop.appendChild(empty);
+  }
+
+  // --- Custom picker row ---
+  const customRow = document.createElement('div');
+  customRow.className = 'custom-row';
+
+  // Hidden native color input — pops the OS color picker (wheel + sliders on Mac,
+  // wheel + RGB inputs on Windows, etc).
+  const nativeInput = document.createElement('input');
+  nativeInput.type = 'color';
+  nativeInput.className = 'native-color';
+  nativeInput.value = sample.color || '#000000';
+  nativeInput.addEventListener('change', (e) => {
+    const c = (e.target.value || '').toLowerCase();
+    applyColor(c, true);
+  });
+
+  const customBtn = document.createElement('button');
+  customBtn.className = 'custom-btn';
+  customBtn.innerHTML = `<span class="wheel"></span><span>${t('colorPickCustom')}</span>`;
+  customBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    nativeInput.click();
+  });
+
+  // Hex text input — lets the user type/paste an exact color (e.g. from Origin's color spec)
+  const hexInput = document.createElement('input');
+  hexInput.type = 'text';
+  hexInput.className = 'hex-input';
+  hexInput.placeholder = '#rrggbb';
+  hexInput.value = sample.color || '';
+  hexInput.maxLength = 7;
+  // Apply on blur or Enter
+  function tryApplyHex() {
+    const c = parseHexInput(hexInput.value);
+    if (c) applyColor(c, true);
+  }
+  hexInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); tryApplyHex(); }
+    if (e.key === 'Escape') { e.preventDefault(); pop.remove(); }
+  });
+  // Don't close the popover on input clicks
+  hexInput.addEventListener('click', (e) => e.stopPropagation());
+
+  customRow.appendChild(nativeInput);
+  customRow.appendChild(customBtn);
+  customRow.appendChild(hexInput);
+  pop.appendChild(customRow);
+
+  // --- Positioning ---
+  const r = anchor.getBoundingClientRect();
+  pop.style.top = (window.scrollY + r.bottom + 6) + 'px';
+  pop.style.left = (window.scrollX + r.left) + 'px';
+  document.body.appendChild(pop);
+
+  // Click-outside-to-close (deferred so the click that opened doesn't immediately close)
+  setTimeout(() => {
+    const off = (e) => {
+      if (!pop.contains(e.target)) {
+        // If the hex input has a valid value that's not yet applied, apply it before closing
+        const pending = parseHexInput(hexInput.value);
+        if (pending && pending.toLowerCase() !== (sample.color || '').toLowerCase()) {
+          // No-op — closing without applying is fine; user can press Enter to commit.
+        }
+        pop.remove();
+        document.removeEventListener('click', off);
+      }
+    };
+    document.addEventListener('click', off);
+  }, 0);
+}
+
+/* ============================================================
+   FILE INTAKE
+   ============================================================ */
+async function ingestFiles(fileList) {
+  // Intercept session JSON files (drag-and-drop session load)
+  const files = Array.from(fileList);
+  const jsonSession = files.find(f => f.name.toLowerCase().endsWith('.json'));
+  if (jsonSession && files.length === 1) {
+    loadSessionFromFile(jsonSession);
+    return;
+  }
+  if (!state.samples.length) createSample();
+  const active = getActive();
+  let okCount = 0;
+  const errors = [];
+  for (const f of files) {
+    // Skip JSON among other files — they're treated specially above only when
+    // dropped alone. If mixed in, just warn and skip.
+    if (f.name.toLowerCase().endsWith('.json')) {
+      errors.push(`${f.name}: drop .json files alone to load a session`);
+      continue;
+    }
+    try {
+      const text = await f.text();
+      const parsed = parseFile(text);
+      active.files.push({ name: f.name, type: parsed.type, data: parsed });
+      okCount++;
+    } catch (err) {
+      errors.push(`${f.name}: ${err.message}`);
+    }
+  }
+  renderSidebar();
+  renderAll();
+  if (okCount) toast(t('loadedFiles', okCount, active.name));
+  if (errors.length) toast(errors.join(' · '), true);
+}
+
+/* ============================================================
+   PLOT TOOLBARS (aspect + PNG)
+   ============================================================ */
+function buildCardTools(plotKey) {
+  const host = document.querySelector(`.card-tools[data-plot="${plotKey}"]`);
+  if (!host || host.dataset.built) return;
+  host.dataset.built = '1';
+
+  // Aspect ratio selector
+  const select = document.createElement('select');
+  select.title = 'Plot aspect ratio';
+  ASPECT_OPTIONS.forEach(o => {
+    const opt = document.createElement('option');
+    opt.value = o.v; opt.textContent = o.v;
+    if (o.v === plotAspect[plotKey]) opt.selected = true;
+    select.appendChild(opt);
+  });
+  select.addEventListener('change', () => {
+    plotAspect[plotKey] = select.value;
+    applyAspect(plotKey);
+  });
+
+  // Live readout: actual displayed dimensions, so the user can see exactly
+  // what they'll get. Helps catch any aspect-ratio confusion.
+  const readout = document.createElement('span');
+  readout.className = 'dim-readout';
+  readout.title = 'Displayed plot box size (the PNG will match this aspect)';
+
+  // Font size button (opens popover with sliders)
+  const fontBtn = document.createElement('button');
+  fontBtn.className = 'icon-btn';
+  fontBtn.title = 'Font sizes';
+  fontBtn.textContent = 'A';
+  fontBtn.style.fontFamily = 'Fraunces, serif';
+  fontBtn.style.fontWeight = '600';
+  fontBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    openFontPopover(fontBtn, plotKey);
+  });
+
+  // Format selector for export
+  const fmt = document.createElement('select');
+  fmt.title = 'Download format';
+  fmt.dataset.format = '1';
+  ['png','svg','jpeg'].forEach(f => {
+    const o = document.createElement('option');
+    o.value = f; o.textContent = f.toUpperCase();
+    fmt.appendChild(o);
+  });
+
+  // Download button uses whatever format is currently selected
+  const btn = document.createElement('button');
+  btn.className = 'icon-btn';
+  btn.title = 'Download in selected format';
+  btn.textContent = '⇣';
+  btn.addEventListener('click', () => downloadImage(plotKey, fmt.value));
+
+  host.appendChild(select);
+  host.appendChild(readout);
+  host.appendChild(fontBtn);
+  host.appendChild(fmt);
+  host.appendChild(btn);
+}
+
+function openFontPopover(anchor, plotKey) {
+  document.querySelectorAll('.font-popover').forEach(e => e.remove());
+  const cur = plotFonts[plotKey];
+
+  const pop = document.createElement('div');
+  pop.className = 'font-popover';
+  pop.innerHTML = `
+    <div class="font-pop-title">${t('fontPopTitle')} <span class="muted">— ${plotKey}</span></div>
+
+    <div class="font-pop-sub">${t('fontSectionText')}</div>
+    <div class="font-row">
+      <label>${t('fontAxisTitle')}</label>
+      <input type="range" min="10" max="32" step="1" data-key="axisTitle" data-int="1" value="${cur.axisTitle}" />
+      <span class="val mono" data-show="axisTitle">${cur.axisTitle}</span>
+    </div>
+    <div class="font-row">
+      <label>${t('fontTickLabel')}</label>
+      <input type="range" min="8" max="28" step="1" data-key="tickLabel" data-int="1" value="${cur.tickLabel}" />
+      <span class="val mono" data-show="tickLabel">${cur.tickLabel}</span>
+    </div>
+    <div class="font-row">
+      <label>${t('fontLegend')}</label>
+      <input type="range" min="8" max="24" step="1" data-key="legend" data-int="1" value="${cur.legend}" />
+      <span class="val mono" data-show="legend">${cur.legend}</span>
+    </div>
+
+    <div class="font-pop-sub">${t('fontSectionTrace')}</div>
+    <div class="font-row">
+      <label>${t('fontLineWidth')}</label>
+      <input type="range" min="0.5" max="6" step="0.25" data-key="lineWidth" value="${cur.lineWidth}" />
+      <span class="val mono" data-show="lineWidth">${cur.lineWidth}</span>
+    </div>
+    <div class="font-row">
+      <label>${t('fontMarkerSize')}</label>
+      <input type="range" min="0" max="20" step="1" data-key="markerSize" data-int="1" value="${cur.markerSize}" />
+      <span class="val mono" data-show="markerSize">${cur.markerSize}</span>
+    </div>
+    <div class="font-row">
+      <label>${t('fontSmoothing')}</label>
+      <input type="range" min="0" max="1.3" step="0.1" data-key="smoothing" value="${cur.smoothing || 0}" />
+      <span class="val mono" data-show="smoothing">${cur.smoothing || 0}</span>
+    </div>
+
+    <div class="font-pop-sub">${t('fontSectionAxis')}</div>
+    <div class="font-row">
+      <label>${t('fontYZoom')}</label>
+      <input type="range" min="0.2" max="5" step="0.05" data-key="yZoom" value="${cur.yZoom == null ? 1 : cur.yZoom}" />
+      <span class="val mono" data-show="yZoom">${(cur.yZoom == null ? 1 : cur.yZoom).toFixed(2)}×</span>
+    </div>
+    <div class="font-pop-hint" style="margin-top:0; margin-bottom:8px;">${t('fontYZoomHint')}</div>
+
+    <div class="font-pop-sub">${t('fontLegendPos')}</div>
+    <div class="legend-grid" data-current="${cur.legendPos || 'tl'}">
+      <button class="lpos" data-pos="tl" title="${t('legendPosTL')}"></button>
+      <button class="lpos" data-pos="tc" title="${t('legendPosTC')}"></button>
+      <button class="lpos" data-pos="tr" title="${t('legendPosTR')}"></button>
+      <button class="lpos" data-pos="ml" title="${t('legendPosML')}"></button>
+      <button class="lpos" data-pos="mc" title="${t('legendPosMC')}"></button>
+      <button class="lpos" data-pos="mr" title="${t('legendPosMR')}"></button>
+      <button class="lpos" data-pos="bl" title="${t('legendPosBL')}"></button>
+      <button class="lpos" data-pos="bc" title="${t('legendPosBC')}"></button>
+      <button class="lpos" data-pos="br" title="${t('legendPosBR')}"></button>
+    </div>
+    <button class="action lpos-outside" data-pos="or">${t('legendPosOR')} ↗</button>
+
+    <div class="font-pop-actions">
+      <button class="action" data-act="reset">${t('fontReset')}</button>
+      <button class="action" data-act="apply-all">${t('fontApplyAll')}</button>
+    </div>
+    <div class="font-pop-hint">${t('fontHint')}</div>
+  `;
+
+  // Mark the current legend position button as selected
+  const markActiveLpos = () => {
+    const cur = plotFonts[plotKey].legendPos || 'tl';
+    pop.querySelectorAll('.lpos').forEach(b => {
+      b.classList.toggle('active', b.dataset.pos === cur);
+    });
+    pop.querySelector('.lpos-outside').classList.toggle('active', cur === 'or');
+  };
+  markActiveLpos();
+
+  pop.querySelectorAll('input[type=range]').forEach(inp => {
+    inp.addEventListener('input', () => {
+      const k = inp.dataset.key;
+      const isInt = inp.dataset.int === '1';
+      const v = isInt ? parseInt(inp.value) : parseFloat(inp.value);
+      plotFonts[plotKey][k] = v;
+      // Per-slider display formatting
+      let displayV;
+      if (k === 'yZoom')      displayV = v.toFixed(2) + '×';
+      else                    displayV = v;
+      pop.querySelector(`[data-show="${k}"]`).textContent = displayV;
+      if (plotKey === 'compare') renderComparePlot();
+      else if (plotKey === 'd_auc') {
+        // D-AUC is rendered as part of renderMainPlots — re-trigger
+        renderMainPlots();
+      } else renderMainPlots();
+    });
+  });
+  pop.querySelectorAll('.lpos, .lpos-outside').forEach(b => {
+    b.addEventListener('click', () => {
+      plotFonts[plotKey].legendPos = b.dataset.pos;
+      markActiveLpos();
+      if (plotKey === 'compare') renderComparePlot();
+      else renderMainPlots();
+    });
+  });
+  pop.querySelector('[data-act="reset"]').addEventListener('click', () => {
+    plotFonts[plotKey] = { ...DEFAULT_FONTS };
+    pop.remove();
+    if (plotKey === 'compare') renderComparePlot();
+    else renderMainPlots();
+  });
+  pop.querySelector('[data-act="apply-all"]').addEventListener('click', () => {
+    const copy = { ...plotFonts[plotKey] };
+    PLOT_IDS.forEach(k => { plotFonts[k] = { ...copy }; });
+    pop.remove();
+    renderAll();
+    toast(t('fontsAppliedAll'));
+  });
+
+  // Position the popover under the button, but keep it on-screen
+  const r = anchor.getBoundingClientRect();
+  document.body.appendChild(pop);
+  const popW = pop.offsetWidth || 260;
+  let left = window.scrollX + r.right - popW;
+  if (left < 8) left = 8;
+  pop.style.top = (window.scrollY + r.bottom + 6) + 'px';
+  pop.style.left = left + 'px';
+
+  setTimeout(() => {
+    const off = (e) => {
+      if (!pop.contains(e.target) && e.target !== anchor) {
+        pop.remove();
+        document.removeEventListener('click', off);
+      }
+    };
+    document.addEventListener('click', off);
+  }, 0);
+}
+
+// Each plot card's "natural" width (the width its column gives it) is what we
+// compute aspect ratio against. We must NOT read the wrapper's current width
+// because we set it ourselves — so subsequent calls would compound previous
+// shrinkings. We read from the .plot-card ancestor instead.
+function getCardWidth(plotKey) {
+  const el = document.getElementById(`plot_${plotKey}`);
+  if (!el) return 600;
+  const card = el.closest('.plot-card');
+  if (!card) return 600;
+  // clientWidth gives us the card's content box width (no padding).
+  // Subtract horizontal padding so we measure the actual usable space for
+  // the wrapper (the card has padding: 18px 18px).
+  const cs = window.getComputedStyle(card);
+  const padL = parseFloat(cs.paddingLeft) || 0;
+  const padR = parseFloat(cs.paddingRight) || 0;
+  return Math.max(200, card.clientWidth - padL - padR);
+}
+
+function applyAspect(plotKey) {
+  const el = document.getElementById(`plot_${plotKey}`);
+  if (!el) return;
+  const wrap = el.parentElement;
+  const ratio = ASPECT_OPTIONS.find(o => o.v === plotAspect[plotKey]);
+  const r = ratio ? (ratio.h / ratio.w) : 0.5625;
+  const cardWidth = getCardWidth(plotKey);
+
+  // The aspect ratio applies to the wrapper, which is what Plotly fills.
+  // Plotly's automargin may then carve out space for axis labels inside, so
+  // the actual *plot box* will be slightly smaller — that's expected and
+  // works well for journal figures.
+  //
+  // Sizing rule: try to fill the card width; if that gives a height outside
+  // [MIN_H, MAX_H], narrow the wrapper instead of distorting the ratio. The
+  // ratio is preserved exactly.
+  const MIN_H = 240;
+  const MAX_H = 760;
+
+  let plotW = cardWidth;
+  let plotH = plotW * r;
+
+  if (plotH > MAX_H) {
+    plotH = MAX_H;
+    plotW = plotH / r;
+  }
+  if (plotH < MIN_H) {
+    plotH = MIN_H;
+    plotW = plotH / r;
+    if (plotW > cardWidth) {
+      plotW = cardWidth;
+      plotH = plotW * r;
+    }
+  }
+  plotW = Math.min(plotW, cardWidth);
+  plotW = Math.round(plotW);
+  plotH = Math.round(plotH);
+
+  // Center the wrapper if narrower than the card
+  wrap.style.height = plotH + 'px';
+  wrap.style.width = plotW + 'px';
+  wrap.style.marginLeft = 'auto';
+  wrap.style.marginRight = 'auto';
+  el.style.height = '100%';
+  el.style.width = '100%';
+
+  el._displayDims = { w: plotW, h: plotH };
+  updateAspectReadout(plotKey);
+
+  // Plotly needs an explicit resize after we change the wrapper dims, or it
+  // will keep using the previous width when it re-renders.
+  if (el.data) {
+    // Use rAF so the browser commits the style change before Plotly measures.
+    requestAnimationFrame(() => {
+      try { Plotly.Plots.resize(el); } catch (e) {}
+      updateAspectReadout(plotKey);
+    });
+  }
+}
+
+function updateAspectReadout(plotKey) {
+  const host = document.querySelector(`.card-tools[data-plot="${plotKey}"]`);
+  if (!host) return;
+  const r = host.querySelector('.dim-readout');
+  if (!r) return;
+  const el = document.getElementById(`plot_${plotKey}`);
+  const d = el && el._displayDims;
+  r.textContent = d ? `${d.w}×${d.h}` : '';
+}
+
+function downloadImage(plotKey, format) {
+  if (typeof Plotly === 'undefined') {
+    toast('Plotly library failed to load — check your internet connection', true);
+    return;
+  }
+  const el = document.getElementById(`plot_${plotKey}`);
+  if (!el || !el.data || !el.data.length) {
+    toast(t('nothingToExport'), true);
+    return;
+  }
+
+  // WYSIWYG export — the saved file MUST match what's on screen.
+  // We use the on-screen wrapper's dimensions exactly so that font sizes,
+  // marker sizes, line widths, tick spacing — every visual element keeps
+  // the same relative proportions as the live plot. Higher resolution
+  // comes from Plotly's `scale: 3` parameter, not from a bigger canvas.
+  const onScreen = el._displayDims || { w: 600, h: 400 };
+  const exportW = onScreen.w;
+  const exportH = onScreen.h;
+
+  // Filename includes plot name + visible sample names
+  const sampleNames = state.samples
+    .filter(s => s.visible && s.files.length)
+    .map(s => s.name).join('_').replace(/[^a-z0-9_\-]/gi,'_').slice(0, 40) || 'plot';
+  const filename = `${plotKey}_${sampleNames}`;
+
+  // Clone the current layout. The only thing we change for export is the
+  // background (so PNG viewers don't render through to whatever's behind).
+  const origLayout = JSON.parse(JSON.stringify(el.layout));
+  const exportLayout = JSON.parse(JSON.stringify(el.layout));
+
+  if (transparentBg) {
+    exportLayout.paper_bgcolor = 'rgba(0,0,0,0)';
+    exportLayout.plot_bgcolor = 'rgba(0,0,0,0)';
+  } else {
+    exportLayout.paper_bgcolor = '#ffffff';
+    exportLayout.plot_bgcolor = '#ffffff';
+  }
+
+  // Apply the export layout, take the screenshot, then revert
+  Plotly.relayout(el, exportLayout).then(() => {
+    const opts = {
+      format,
+      width: exportW,
+      height: exportH,
+      filename,
+    };
+    // PNG/JPEG benefit from scale=2 for higher DPI; SVG is vector, no scale needed.
+    // PNG/JPEG: render at 3× the canvas dimensions for crisp output at
+    // retina/print resolutions. SVG is vector — no supersampling needed.
+    if (format !== 'svg') opts.scale = 3;
+    return Plotly.downloadImage(el, opts);
+  }).then(() => {
+    // Restore the screen layout
+    Plotly.relayout(el, origLayout);
+  }).catch((err) => {
+    Plotly.relayout(el, origLayout);
+    toast(t('exportFailed', err.message), true);
+  });
+
+  toast(t('exporting', plotKey, format, exportW, exportH));
+}
+
+/* ============================================================
+   PLOTTING
+   ============================================================ */
+// Scroll-zoom enabled so users can zoom into a region of any plot with the
+// mouse wheel. Drag-box-to-zoom is also enabled (Plotly default).
+// Drag on the axis number labels stretches that axis only.
+// Double-click resets to the nice-range we computed.
+const PLOTLY_CFG = {
+  displayModeBar: 'hover',
+  responsive: true,
+  displaylogo: false,
+  scrollZoom: true,
+  modeBarButtonsToRemove: ['lasso2d','select2d','toImage'],
+};
+
+function commonLayout(xtitle, ytitle, opts = {}) {
+  const fonts = opts.fonts || DEFAULT_FONTS;
+  const traceCount = opts.traceCount || 0;
+
+  // Origin-style plot:
+  //   - White plot bg, closed box frame on all 4 sides
+  //   - Inward-pointing ticks (major and minor)
+  //   - No grid lines (clean, like the Origin reference)
+  //   - Black axis lines/text — regardless of UI theme
+  //   - Legend INSIDE the plot, top-left, transparent bg, no border
+  //   - Inter sans-serif throughout, sized for the plot box
+  //
+  // The "transparent background" sidebar toggle just removes the white fill;
+  // everything else stays the same. (Useful for transparent PNG exports.)
+
+  const plotBg = transparentBg ? 'rgba(0,0,0,0)' : '#ffffff';
+  const axisInk = '#000000';
+  const axisLine = 'rgba(0,0,0,0.85)';
+
+  // Legend positioning: 9-cell grid inside the plot, or outside-right.
+  // Position codes: tl/tc/tr/ml/mc/mr/bl/bc/br/or.
+  // (mc = middle-center isn't usually useful — but it's there if needed.)
+  const POS_MAP = {
+    tl: { x: 0.02, y: 0.98, xa: 'left',   ya: 'top',    o: 'v' },
+    tc: { x: 0.50, y: 0.98, xa: 'center', ya: 'top',    o: 'h' },
+    tr: { x: 0.98, y: 0.98, xa: 'right',  ya: 'top',    o: 'v' },
+    ml: { x: 0.02, y: 0.50, xa: 'left',   ya: 'middle', o: 'v' },
+    mc: { x: 0.50, y: 0.50, xa: 'center', ya: 'middle', o: 'v' },
+    mr: { x: 0.98, y: 0.50, xa: 'right',  ya: 'middle', o: 'v' },
+    bl: { x: 0.02, y: 0.02, xa: 'left',   ya: 'bottom', o: 'v' },
+    bc: { x: 0.50, y: 0.02, xa: 'center', ya: 'bottom', o: 'h' },
+    br: { x: 0.98, y: 0.02, xa: 'right',  ya: 'bottom', o: 'v' },
+    or: { x: 1.02, y: 1.00, xa: 'left',   ya: 'top',    o: 'v' },  // outside right
+  };
+  const legendPos = (fonts.legendPos && POS_MAP[fonts.legendPos]) ? fonts.legendPos : 'tl';
+  const lp = POS_MAP[legendPos];
+  const legend = {
+    orientation: lp.o,
+    x: lp.x, xanchor: lp.xa,
+    y: lp.y, yanchor: lp.ya,
+    bgcolor: 'rgba(0,0,0,0)',
+    bordercolor: 'rgba(0,0,0,0)',
+    borderwidth: 0,
+    font: { size: fonts.legend, family: 'Inter, Arial, sans-serif', color: axisInk },
+    itemsizing: 'constant',
+    tracegroupgap: 4,
+  };
+
+  // Margins: extra right margin when legend is outside-right so it doesn't clip.
+  const margin = (legendPos === 'or')
+    ? { t: 28, r: 160, b: 64, l: 80 }
+    : { t: 28, r: 28, b: 64, l: 80 };
+
+  // Tick-density anti-overlap: cap the number of ticks based on plot width
+  // and tick-label font size. Larger fonts → fewer ticks so labels don't
+  // collide. We rely on the plot-card's clientWidth at render time, since
+  // Plotly hasn't measured yet. Estimate ~ width / (font * 6 chars).
+  // Returned as `nticks` hint; Plotly chooses nearby nice numbers.
+  const plotW = opts.plotWidth || 600;
+  const plotH = opts.plotHeight || 400;
+  const xMaxTicks = Math.max(3, Math.floor(plotW / (fonts.tickLabel * 5)));
+  const yMaxTicks = Math.max(3, Math.floor(plotH / (fonts.tickLabel * 2.5)));
+
+  const axisSpec = {
+    gridcolor: 'rgba(0,0,0,0)',           // no grid
+    showgrid: false,
+    zerolinecolor: 'rgba(0,0,0,0)',
+    zeroline: false,
+    linecolor: axisLine,
+    linewidth: 1.6,
+    tickfont: { size: fonts.tickLabel, color: axisInk, family: 'Inter, Arial, sans-serif' },
+    automargin: true,
+    showline: true,
+    mirror: 'allticks',                    // closed box on all 4 sides with ticks
+    ticks: 'inside',
+    ticklen: 7,
+    tickwidth: 1.4,
+    tickcolor: axisLine,
+    // fixedrange: false lets the user drag the axis numbers to stretch this
+    // axis, scroll-wheel to zoom in/out, or drag a box in the plot to zoom
+    // into a region. Double-click resets back to the nice-range we computed.
+    fixedrange: false,
+    // Minor ticks between major ones — Origin style. Plotly automatically
+    // places these (e.g. 5 between major for linear, decade subdivisions
+    // for log). We just turn them on with the same inward style.
+    minor: {
+      ticks: 'inside',
+      ticklen: 4,
+      tickwidth: 1,
+      tickcolor: axisLine,
+      showgrid: false,
+    },
+  };
+
+  return {
+    paper_bgcolor: 'rgba(0,0,0,0)',        // card shows through on screen
+    plot_bgcolor: plotBg,
+    font: { color: axisInk, family: 'Inter, Arial, sans-serif', size: fonts.tickLabel },
+    margin,
+    xaxis: {
+      ...axisSpec,
+      title: {
+        text: xtitle,
+        font: { size: fonts.axisTitle, family: 'Inter, Arial, sans-serif', color: axisInk },
+        standoff: 16,
+      },
+      type: opts.xlog ? 'log' : 'linear',
+      nticks: xMaxTicks,
+      // Explicit range = no auto-padding from Plotly. Our nice-range helpers
+      // have already done the padding more carefully than Plotly would.
+      ...(opts.xRange ? { range: opts.xRange, autorange: false } : {}),
+    },
+    yaxis: {
+      ...axisSpec,
+      title: {
+        text: ytitle,
+        font: { size: fonts.axisTitle, family: 'Inter, Arial, sans-serif', color: axisInk },
+        standoff: 12,
+      },
+      type: opts.ylog ? 'log' : 'linear',
+      nticks: yMaxTicks,
+      ...(opts.yRange ? { range: opts.yRange, autorange: false } : {}),
+    },
+    legend,
+    hovermode: 'closest',
+    showlegend: traceCount > 0,
+  };
+}
+
+// Lighten a hex color toward white by a given amount (0..1).
+// Used for the radial-gradient highlight on markers — gives the 3D-ball look.
+function lightenColor(hex, amount) {
+  // hex can be '#rrggbb' or '#rgb'
+  let h = hex.replace('#', '');
+  if (h.length === 3) h = h[0]+h[0]+h[1]+h[1]+h[2]+h[2];
+  const r = parseInt(h.slice(0,2), 16);
+  const g = parseInt(h.slice(2,4), 16);
+  const b = parseInt(h.slice(4,6), 16);
+  const lr = Math.round(r + (255 - r) * amount);
+  const lg = Math.round(g + (255 - g) * amount);
+  const lb = Math.round(b + (255 - b) * amount);
+  return `rgb(${lr},${lg},${lb})`;
+}
+// Darken a hex color by a given amount (0..1). Used for marker rim.
+function darkenColor(hex, amount) {
+  let h = hex.replace('#', '');
+  if (h.length === 3) h = h[0]+h[0]+h[1]+h[1]+h[2]+h[2];
+  const r = parseInt(h.slice(0,2), 16);
+  const g = parseInt(h.slice(2,4), 16);
+  const b = parseInt(h.slice(4,6), 16);
+  const dr = Math.round(r * (1 - amount));
+  const dg = Math.round(g * (1 - amount));
+  const db = Math.round(b * (1 - amount));
+  return `rgb(${dr},${dg},${db})`;
+}
+
+// ============================================================
+// NICE RANGE — pushes axis bounds outward so data never sits exactly on the
+// frame edge. Matches Origin's "data should breathe" margin convention.
+// Adapted from the reference scientific-plotter spec.
+// ============================================================
+function niceNum(x, round) {
+  if (x <= 0 || !Number.isFinite(x)) return 1;
+  const exp = Math.floor(Math.log10(x));
+  const f = x / Math.pow(10, exp);
+  let nf;
+  if (round) {
+    if (f < 1.5) nf = 1;
+    else if (f < 3) nf = 2;
+    else if (f < 7) nf = 5;
+    else nf = 10;
+  } else {
+    if (f <= 1) nf = 1;
+    else if (f <= 2) nf = 2;
+    else if (f <= 5) nf = 5;
+    else nf = 10;
+  }
+  return nf * Math.pow(10, exp);
+}
+
+// Log-axis nice range: returns [lo_exp, hi_exp] in log10 space, which is what
+// Plotly's log axis expects for `range`. Adds an extra decade of margin when
+// data hugs a decade boundary (within 0.08 log units).
+function niceLogRange(minData, maxData) {
+  if (!(minData > 0) || !(maxData > 0) || maxData <= minData) return null;
+  let lo = Math.floor(Math.log10(minData));
+  let hi = Math.ceil(Math.log10(maxData));
+  if (hi === lo) hi = lo + 1;
+  if (Math.log10(minData) - lo < 0.08) lo -= 1;
+  if (hi - Math.log10(maxData) < 0.08) hi += 1;
+  return [lo, hi];
+}
+
+// Linear-axis nice range. Returns [lo, hi] in data units. Pushes outward
+// if data sits too close to either boundary.
+function niceLinearRange(minData, maxData) {
+  if (!Number.isFinite(minData) || !Number.isFinite(maxData)) return null;
+  if (maxData < minData) [minData, maxData] = [maxData, minData];
+  if (maxData === minData) {
+    const pad = Math.abs(maxData) > 0 ? Math.abs(maxData) * 0.1 : 1;
+    return [minData - pad, maxData + pad];
+  }
+  const step = niceNum((maxData - minData) / 6, true);
+  let lo = Math.floor(minData / step) * step;
+  let hi = Math.ceil(maxData / step) * step;
+  const span = hi - lo;
+  if ((hi - maxData) / step < 0.05 || (hi - maxData) / span < 0.03) hi += step;
+  if ((minData - lo) / step < 0.05 || (minData - lo) / span < 0.03) lo -= step;
+  return [lo, hi];
+}
+
+// Compute [xMin..xMax, yMin..yMax] across all visible-sample traces,
+// honoring the same null-skip and negation as buildTrace.
+function getExtents(ready, xKey, yKey, negate) {
+  let xMin = Infinity, xMax = -Infinity, yMin = Infinity, yMax = -Infinity;
+  for (const { merged } of ready) {
+    for (const r of merged) {
+      const xv = r[xKey], yv = r[yKey];
+      if (xv == null || yv == null) continue;
+      const yp = negate ? -yv : yv;
+      if (xv < xMin) xMin = xv;
+      if (xv > xMax) xMax = xv;
+      if (yp < yMin) yMin = yp;
+      if (yp > yMax) yMax = yp;
+    }
+  }
+  if (!Number.isFinite(xMin)) return null;
+  return { xMin, xMax, yMin, yMax };
+}
+
+// Scale a [lo, hi] axis range by `factor` around its center.
+// factor < 1 → zoom in (smaller range). factor > 1 → zoom out (bigger range).
+// For log axes the range is in log10 space; multiplying the log-span there
+// corresponds to widening or narrowing the decade window.
+function scaleRange(range, factor) {
+  if (!range || factor == null || factor === 1) return range;
+  const [lo, hi] = range;
+  const center = (lo + hi) / 2;
+  const halfSpan = (hi - lo) / 2;
+  return [center - halfSpan * factor, center + halfSpan * factor];
+}
+
+function buildTrace(rows, xKey, yKey, color, name, opts = {}) {
+  const x = [], y = [];
+  for (const r of rows) {
+    const xv = r[xKey], yv = r[yKey];
+    if (xv == null || yv == null) continue;
+    x.push(xv);
+    y.push(opts.negate ? -yv : yv);
+  }
+  const lw = opts.lineWidth != null ? opts.lineWidth : 1.75;
+  const ms = opts.markerSize != null ? opts.markerSize : 12;
+  const smoothing = opts.smoothing != null ? Math.max(0, Math.min(1.3, opts.smoothing)) : 0;
+  // Spec: stroke-width = max(0.5, radius × 0.13). ms is the diameter, so radius = ms/2.
+  const rimWidth = Math.max(0.5, (ms / 2) * 0.13);
+  // Smoothing: when > 0, switch to spline line shape. The number is Plotly's
+  // smoothing factor (0 → straight; ~1.3 is the practical max before lines
+  // overshoot data points).
+  const lineSpec = smoothing > 0
+    ? { color, width: lw, shape: 'spline', smoothing }
+    : { color, width: lw, shape: 'linear' };
+  return {
+    x, y,
+    type: 'scatter',
+    mode: 'lines+markers',
+    name,
+    line: lineSpec,
+    marker: {
+      color,
+      size: ms,
+      line: { color: darkenColor(color, 0.35), width: rimWidth },
+      gradient: { type: 'radial', color: lightenColor(color, 0.62) },
+    },
+  };
+}
+
+function renderMainPlots() {
+  if (typeof Plotly === 'undefined') return;
+  const grid = document.getElementById('plotGrid');
+  const empty = document.getElementById('emptyState');
+  const anyData = state.samples.some(s => s.visible && s.files.length);
+  if (!anyData) {
+    grid.style.display = 'none';
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+  grid.style.display = 'grid';
+
+  const ready = state.samples.filter(s => s.visible && s.files.length)
+    .map(s => ({ sample: s, merged: mergeSampleFiles(s) }));
+
+  const cfgs = [
+    { key: 'nyquist',    xt: t('axisZreal'),  yt: t('axisZimagNeg'),                                xKey: 'zReal', yKey: 'zImag', negate: true },
+    { key: 'bode_mag',   xt: t('axisFreq'),   yt: t('axisZmag'),    xlog:true, ylog:true,  xKey: 'freq', yKey: 'z' },
+    { key: 'bode_phase', xt: t('axisFreq'),   yt: t('axisPhase'),   xlog:true,             xKey: 'freq', yKey: 'phase' },
+    { key: 'cp',         xt: t('axisFreq'),   yt: t('axisCp'),      xlog:true, ylog:true,  xKey: 'freq', yKey: 'cp' },
+    { key: 'rs',         xt: t('axisFreq'),   yt: t('axisRs'),      xlog:true, ylog:true,  xKey: 'freq', yKey: 'rs' },
+    { key: 'd',          xt: t('axisFreq'),   yt: t('axisD'),       xlog:true,             xKey: 'freq', yKey: 'd' },
+  ];
+
+  for (const c of cfgs) {
+    buildCardTools(c.key);
+    applyAspect(c.key);
+    const style = plotFonts[c.key];
+    const allTraces = ready.map(({ sample, merged }) =>
+      buildTrace(merged, c.xKey, c.yKey, sample.color, sample.name, {
+        negate: c.negate,
+        lineWidth: style.lineWidth,
+        markerSize: style.markerSize,
+        smoothing: style.smoothing,
+      })
+    );
+    const traces = allTraces.filter(t => t.x.length);
+
+    // Compute data extents and pick nice ranges. We set ranges explicitly
+    // (rather than letting Plotly auto-range) so points never sit on the
+    // frame edge — they always have visible breathing room.
+    const ext = getExtents(ready, c.xKey, c.yKey, c.negate);
+    let xRange = null, yRange = null;
+    if (ext) {
+      xRange = c.xlog ? niceLogRange(ext.xMin, ext.xMax) : niceLinearRange(ext.xMin, ext.xMax);
+      yRange = c.ylog ? niceLogRange(ext.yMin, ext.yMax) : niceLinearRange(ext.yMin, ext.yMax);
+    }
+    // Per-plot Y zoom: 1 = nice range, <1 zooms in, >1 zooms out
+    if (yRange && style.yZoom && style.yZoom !== 1) {
+      yRange = scaleRange(yRange, style.yZoom);
+    }
+
+    const el = document.getElementById(`plot_${c.key}`);
+    const dims = el && el._displayDims ? el._displayDims : { w: 600, h: 400 };
+    Plotly.react(`plot_${c.key}`, traces, commonLayout(c.xt, c.yt, {
+      xlog: c.xlog,
+      ylog: c.ylog,
+      fonts: style,
+      traceCount: traces.length,
+      xRange,
+      yRange,
+      plotWidth: dims.w,
+      plotHeight: dims.h,
+    }), PLOTLY_CFG);
+  }
+
+  // Render the D-AUC companion chart (bar of integrated dissipation per sample)
+  renderDAuc(ready);
+}
+
+/* ============================================================
+   D AREA-UNDER-CURVE companion bar chart
+   ============================================================ */
+// Trapezoidal integration of D over log10(frequency). Returns area, or null
+// if there aren't enough points or D values.
+function integrateD(merged) {
+  const pts = merged.filter(r => r.d != null && r.freq > 0).sort((a,b) => a.freq - b.freq);
+  if (pts.length < 2) return null;
+  let area = 0;
+  for (let i = 1; i < pts.length; i++) {
+    const dx = Math.log10(pts[i].freq) - Math.log10(pts[i-1].freq);
+    const avgY = (pts[i].d + pts[i-1].d) / 2;
+    area += dx * avgY;
+  }
+  return area;
+}
+
+function renderDAuc(ready) {
+  if (typeof Plotly === 'undefined') return;
+  buildCardTools('d_auc');
+  applyAspect('d_auc');
+
+  const data = [];
+  for (const { sample, merged } of ready) {
+    const a = integrateD(merged);
+    if (a != null && Number.isFinite(a)) {
+      data.push({ name: sample.name, value: a, color: sample.color });
+    }
+  }
+  const style = plotFonts.d_auc;
+  const el = document.getElementById('plot_d_auc');
+
+  if (!data.length) {
+    Plotly.react(el, [], {
+      ...commonLayout('', '', { fonts: style, traceCount: 0 }),
+      annotations: [{
+        text: t('noDDataAuc'),
+        showarrow: false,
+        font: { color: '#888', size: 12, family: 'Inter, sans-serif' },
+        x: 0.5, y: 0.5, xref: 'paper', yref: 'paper',
+      }],
+      xaxis: { visible: false }, yaxis: { visible: false },
+    }, PLOTLY_CFG);
+    return;
+  }
+
+  const trace = {
+    x: data.map(d => d.name),
+    y: data.map(d => d.value),
+    type: 'bar',
+    marker: {
+      color: data.map(d => d.color),
+      line: { color: data.map(d => darkenColor(d.color, 0.35)), width: 1 },
+    },
+    text: data.map(d => d.value.toPrecision(4)),
+    textposition: 'outside',
+    textfont: { size: style.tickLabel, family: 'Inter, sans-serif', color: '#000' },
+    hovertemplate: '<b>%{x}</b><br>AUC: %{y:.4f}<extra></extra>',
+    showlegend: false,
+  };
+
+  const dims = el._displayDims || { w: 600, h: 400 };
+  const layout = commonLayout(t('axisSample'), t('axisDAuc'), {
+    fonts: style,
+    traceCount: 1,
+    plotWidth: dims.w,
+    plotHeight: dims.h,
+  });
+  // Bar charts need categorical x-axis and no minor ticks between categories.
+  layout.xaxis.type = 'category';
+  layout.xaxis.minor = { ticks: '', ticklen: 0 };
+  layout.showlegend = false;
+
+  // Y zoom: compute range from bar heights, then scale around center
+  if (style.yZoom && style.yZoom !== 1) {
+    const values = data.map(d => d.value).filter(v => Number.isFinite(v));
+    if (values.length) {
+      const lo = Math.min(0, ...values);   // bars start from 0
+      const hi = Math.max(0, ...values);
+      const yRange = niceLinearRange(lo, hi);
+      const scaled = scaleRange(yRange, style.yZoom);
+      if (scaled) {
+        layout.yaxis.range = scaled;
+        layout.yaxis.autorange = false;
+      }
+    }
+  }
+
+  Plotly.react(el, [trace], layout, PLOTLY_CFG);
+}
+
+/* ============================================================
+   COMPARISON PLOT
+   ============================================================ */
+const METRIC_LABEL = {
+  cp:    { name: 'Cp', unit: 'F' },
+  rs:    { name: 'Rs', unit: 'Ω' },
+  d:     { name: 'D',  unit: '' },
+  z:     { name: '|Z|', unit: 'Ω' },
+  phase: { name: 'θ', unit: '°' },
+  zReal: { name: 'Z′', unit: 'Ω' },
+  zImag: { name: 'Z″', unit: 'Ω' },
+};
+
+function parseFreqToken(tok) {
+  const t = tok.trim().toLowerCase().replace(/hz$/, '').trim();
+  if (!t) return null;
+  const m = t.match(/^([0-9]*\.?[0-9]+)\s*([a-z]?)$/);
+  if (!m) return null;
+  const v = parseFloat(m[1]);
+  const suf = m[2];
+  const mul = { '': 1, k: 1e3, m: 1e6, g: 1e9 };
+  if (!(suf in mul)) return null;
+  return v * mul[suf];
+}
+function addCmpFreqs(rawInput) {
+  const tokens = rawInput.split(/[,;\s]+/).filter(Boolean);
+  let added = 0;
+  for (const t of tokens) {
+    const f = parseFreqToken(t);
+    if (f == null || f <= 0) continue;
+    if (cmpState.freqs.some(x => Math.abs(Math.log10(x) - Math.log10(f)) < 1e-3)) continue;
+    cmpState.freqs.push(f);
+    added++;
+  }
+  cmpState.freqs.sort((a,b) => a - b);
+  return added;
+}
+// Format a frequency in Hz to a human-readable string with appropriate unit.
+// IMPORTANT: the regex strips trailing zeros only *after a decimal point*.
+// A naive /\.?0+$/ would also strip integer trailing zeros — turning
+// "100" into "1" — which causes the (now fixed) bug where 100 kHz showed
+// as "1 kHz" and 200 kHz showed as "2 kHz" in the comparison plot legend.
+// The fix: require a decimal point in the match, so "1.50" → "1.5" but
+// "100" stays "100".
+function fmtFreq(f) {
+  function stripTrailing(s) {
+    // Remove trailing zeros only when there's a decimal point;
+    // also drop the decimal point itself if all digits after it are zero.
+    return s.replace(/(\.\d*?)0+$/, '$1').replace(/\.$/, '');
+  }
+  if (f >= 1e6) return stripTrailing((f/1e6).toFixed(f >= 1e7 ? 0 : 2)) + ' MHz';
+  if (f >= 1e3) return stripTrailing((f/1e3).toFixed(f >= 1e4 ? 0 : 2)) + ' kHz';
+  if (f >= 1)   return stripTrailing(f.toFixed(f >= 10 ? 0 : 2)) + ' Hz';
+  return stripTrailing((f*1e3).toFixed(2)) + ' mHz';
+}
+function fmtValue(v) {
+  if (v == null || !Number.isFinite(v)) return '';
+  const a = Math.abs(v);
+  if (a !== 0 && (a < 1e-2 || a >= 1e4)) return v.toExponential(3);
+  return v.toPrecision(4);
+}
+function interpAt(merged, freq, metric) {
+  const pts = merged.filter(r => r[metric] != null && r.freq > 0).sort((a,b) => a.freq - b.freq);
+  if (!pts.length) return null;
+  if (freq <= pts[0].freq) return pts[0][metric];
+  if (freq >= pts[pts.length-1].freq) return pts[pts.length-1][metric];
+  for (let i = 1; i < pts.length; i++) {
+    if (pts[i].freq >= freq) {
+      const a = pts[i-1], b = pts[i];
+      const t = (Math.log10(freq) - Math.log10(a.freq)) / (Math.log10(b.freq) - Math.log10(a.freq));
+      return a[metric] + t * (b[metric] - a[metric]);
+    }
+  }
+  return null;
+}
+
+// Detailed variant for the diagnostics panel.
+// Returns { value, status, fMin, fMax, nPoints } where status is one of:
+//   'ok'             — interpolated between two real points
+//   'clamp-low'      — requested freq below dataset minimum, value is data[0]
+//   'clamp-high'     — requested freq above dataset maximum, value is data[-1]
+//   'no-data'        — no data points exist for this metric
+function interpAtDetailed(merged, freq, metric) {
+  const pts = merged.filter(r => r[metric] != null && r.freq > 0).sort((a,b) => a.freq - b.freq);
+  if (!pts.length) return { value: null, status: 'no-data', fMin: null, fMax: null, nPoints: 0 };
+  const fMin = pts[0].freq;
+  const fMax = pts[pts.length-1].freq;
+  if (freq < fMin)  return { value: pts[0][metric],          status: 'clamp-low',  fMin, fMax, nPoints: pts.length };
+  if (freq > fMax)  return { value: pts[pts.length-1][metric], status: 'clamp-high', fMin, fMax, nPoints: pts.length };
+  // In range: do the interpolation. If exact match, return that point.
+  for (let i = 1; i < pts.length; i++) {
+    if (pts[i].freq >= freq) {
+      const a = pts[i-1], b = pts[i];
+      const t = (Math.log10(freq) - Math.log10(a.freq)) / (Math.log10(b.freq) - Math.log10(a.freq));
+      return { value: a[metric] + t * (b[metric] - a[metric]), status: 'ok', fMin, fMax, nPoints: pts.length };
+    }
+  }
+  return { value: pts[pts.length-1][metric], status: 'ok', fMin, fMax, nPoints: pts.length };
+}
+
+function renderCmpDebug() {
+  const body = document.getElementById('cmpDebugBody');
+  if (!body) return;
+  const visible = state.samples.filter(s => s.visible && s.files.length);
+  if (!visible.length || !cmpState.freqs.length) {
+    body.innerHTML = '<div style="color:var(--ink-faint); font-style:italic;">No samples or no frequencies selected.</div>';
+    return;
+  }
+  // Active metrics (the up-to-4 Y axes)
+  const metrics = [];
+  cmpState.metrics.forEach((m, i) => {
+    if (m && METRIC_LABEL[m]) metrics.push({ metric: m, axisIdx: i });
+  });
+  if (!metrics.length) { body.innerHTML = ''; return; }
+
+  // Precompute merged per sample
+  const mergedBySample = new Map();
+  for (const s of visible) mergedBySample.set(s.id, mergeSampleFiles(s));
+
+  // Track whether any clamping actually occurred — only show the legend if so.
+  let anyClamped = false;
+
+  // Build the table: one row per (sample × metric), one column per frequency
+  const rows = [];
+  rows.push(`<table><thead><tr>
+    <th>Sample</th>
+    <th>Metric</th>
+    <th>Data range  (Hz)</th>
+    ${cmpState.freqs.map(f => `<th>${fmtFreq(f)}</th>`).join('')}
+  </tr></thead><tbody>`);
+
+  for (const s of visible) {
+    const merged = mergedBySample.get(s.id);
+    for (const { metric, axisIdx } of metrics) {
+      const lbl = METRIC_LABEL[metric];
+      const cells = [];
+      const probe = interpAtDetailed(merged, cmpState.freqs[0], metric);
+      const rangeText = probe.status === 'no-data'
+        ? '<span style="color:var(--ink-faint)">no data</span>'
+        : `${fmtFreq(probe.fMin)} — ${fmtFreq(probe.fMax)} (${probe.nPoints} pts)`;
+      for (const f of cmpState.freqs) {
+        const r = interpAtDetailed(merged, f, metric);
+        if (r.status === 'no-data') {
+          cells.push(`<td><span style="color:var(--ink-faint)">—</span></td>`);
+        } else if (r.status === 'clamp-low' || r.status === 'clamp-high') {
+          anyClamped = true;
+          const direction = r.status === 'clamp-low' ? '↓' : '↑';
+          const clampedTo = r.status === 'clamp-low' ? fmtFreq(r.fMin) : fmtFreq(r.fMax);
+          cells.push(`<td class="warn-clamp" title="Requested ${fmtFreq(f)} is outside data range — clamped to ${direction}${clampedTo}">${fmtValue(r.value)} ${direction}</td>`);
+        } else {
+          cells.push(`<td class="value">${fmtValue(r.value)}</td>`);
+        }
+      }
+      rows.push(`<tr>
+        <td><span class="legend-key" style="background:${s.color}"></span>${escapeHtml(s.name)}</td>
+        <td>${lbl.name}${lbl.unit ? ` <span style="color:var(--ink-faint)">(${lbl.unit})</span>` : ''}</td>
+        <td class="range">${rangeText}</td>
+        ${cells.join('')}
+      </tr>`);
+    }
+  }
+  rows.push('</tbody></table>');
+  // Only show the clamping warning legend if at least one value was actually clamped.
+  // Otherwise the text was confusing — it appeared to imply problems when there were none.
+  if (anyClamped) {
+    rows.push('<div style="font-size:9.5px; color:var(--ink-faint); margin-top:8px; line-height:1.6;">⚠ <span style="color:var(--danger)">red ↑/↓</span> = requested frequency outside the sample\'s data range; the value shown is the nearest endpoint, not a true measurement at that frequency.</div>');
+  } else {
+    rows.push('<div style="font-size:9.5px; color:var(--ink-faint); margin-top:8px; line-height:1.6;">✓ All requested frequencies fall within the data range of every sample. Values are real interpolated measurements.</div>');
+  }
+  body.innerHTML = rows.join('');
+}
+
+function renderQuickFreqs() {
+  const host = document.getElementById('quickFreq');
+  host.innerHTML = '';
+  QUICK_FREQS.forEach(q => {
+    const b = document.createElement('button');
+    b.textContent = t('addLabel') + q.label;
+    b.addEventListener('click', () => {
+      if (cmpState.freqs.some(x => Math.abs(Math.log10(x) - Math.log10(q.v)) < 1e-3)) return;
+      cmpState.freqs.push(q.v);
+      cmpState.freqs.sort((a,b) => a - b);
+      renderCmpFreqChips();
+      renderComparePlot();
+    });
+    host.appendChild(b);
+  });
+}
+
+function renderCmpFreqChips() {
+  const c = document.getElementById('cmpFreqList');
+  c.innerHTML = '';
+  cmpState.freqs.forEach((f, idx) => {
+    const span = document.createElement('span');
+    span.className = 'freq-chip';
+    span.innerHTML = `${fmtFreq(f)} <span class="x">✕</span>`;
+    span.querySelector('.x').addEventListener('click', () => {
+      cmpState.freqs.splice(idx, 1);
+      renderCmpFreqChips();
+      renderComparePlot();
+    });
+    c.appendChild(span);
+  });
+}
+
+// Helper: build comparison traces for one metric on one axis assignment.
+// Returns { traces, hasData }.
+// Origin-style multi-Y comparison plot.
+//
+// Up to 4 Y axes. Each axis carries a color (Y1 black, Y2 red, Y3 blue,
+// Y4 green) — its axis line, tick marks, tick labels, and axis title
+// all use this color. Traces on each axis inherit the axis color; the
+// per-sample distinction comes through marker symbol cycling and line
+// dash cycling. This is exactly Origin's convention for multi-axis
+// scientific plots.
+//
+// Layout: Y1 = left edge, Y2 = right edge, Y3/Y4 = offset further right.
+// When Y3 or Y4 is active, we shrink the X-axis domain so the offset
+// axes have room.
+
+function buildCompareTracesForAxis(visible, metric, chart, freqs, axisIdx) {
+  // axisIdx 0..3 → Plotly axis names: y, y2, y3, y4
+  const yAxisRef = axisIdx === 0 ? 'y' : `y${axisIdx + 1}`;
+  const axisColor = Y_AXIS_COLORS[axisIdx];
+  const traces = [];
+  const lbl = METRIC_LABEL[metric];
+  const compareStyle = plotFonts.compare;
+
+  if (chart === 'bar') {
+    // For bars on multi-Y, group by sample → each axis gets one trace per
+    // frequency, with bars colored using the AXIS color (not sample color)
+    // so the visual grouping is "axis identity" first, frequency second.
+    // Sample distinction is on the X-axis labels already.
+    if (freqs.length === 1) {
+      const f = freqs[0];
+      const xs = [], ys = [];
+      for (const s of visible) {
+        const merged = mergeSampleFiles(s);
+        const v = interpAt(merged, f, metric);
+        if (v == null || !Number.isFinite(v)) continue;
+        xs.push(s.name); ys.push(v);
+      }
+      traces.push({
+        x: xs, y: ys,
+        type: 'bar',
+        name: `${lbl.name}${lbl.unit ? ` (${lbl.unit})` : ''}`,
+        marker: {
+          color: lightenColor(axisColor, 0.45),
+          line: { color: axisColor, width: 1.2 },
+        },
+        text: ys.map(fmtValue),
+        textposition: 'outside',
+        textfont: { size: compareStyle.tickLabel, color: axisColor, family: 'Inter, sans-serif' },
+        hovertemplate: `<b>%{x}</b><br>${fmtFreq(f)}<br>${lbl.name}: %{y}<extra></extra>`,
+        yaxis: yAxisRef,
+      });
+    } else {
+      // Grouped bars by frequency — each (frequency × axis) pair is one trace.
+      // We blend the axis color with frequency-index lightness to differentiate.
+      const N = freqs.length;
+      freqs.forEach((f, fi) => {
+        const xs = [], ys = [];
+        for (const s of visible) {
+          const merged = mergeSampleFiles(s);
+          const v = interpAt(merged, f, metric);
+          if (v == null || !Number.isFinite(v)) continue;
+          xs.push(s.name); ys.push(v);
+        }
+        // First frequency: full axis color; later frequencies: progressively lighter
+        const t01 = N === 1 ? 0 : fi / (N - 1);
+        const fillColor = lightenColor(axisColor, 0.15 + t01 * 0.55);
+        traces.push({
+          x: xs, y: ys,
+          type: 'bar',
+          name: `${lbl.name} @ ${fmtFreq(f)}`,
+          marker: {
+            color: fillColor,
+            line: { color: axisColor, width: 1 },
+          },
+          text: ys.map(fmtValue),
+          textposition: 'outside',
+          textfont: { size: Math.max(8, compareStyle.tickLabel - 2), color: axisColor, family: 'Inter, sans-serif' },
+          hovertemplate: `<b>%{x}</b><br>${fmtFreq(f)}<br>${lbl.name}: %{y}<extra></extra>`,
+          yaxis: yAxisRef,
+        });
+      });
+    }
+  } else {
+    // Scatter / points-only: one trace per sample on this axis.
+    // Sample distinction = marker symbol + line dash cycling.
+    const traceMode = (chart === 'points') ? 'markers' : 'lines+markers';
+    const markerSize = Math.max(8, compareStyle.markerSize);
+    visible.forEach((s, sIdx) => {
+      const merged = mergeSampleFiles(s);
+      const xs = [], ys = [];
+      for (const f of freqs) {
+        const v = interpAt(merged, f, metric);
+        if (v == null || !Number.isFinite(v)) continue;
+        xs.push(f); ys.push(v);
+      }
+      const symbol = MARKER_SYMBOLS[sIdx % MARKER_SYMBOLS.length];
+      const dash = LINE_DASHES[sIdx % LINE_DASHES.length];
+      traces.push({
+        x: xs, y: ys,
+        type: 'scatter',
+        mode: traceMode,
+        name: `${s.name} — ${lbl.name}`,
+        line: { color: axisColor, width: compareStyle.lineWidth, dash },
+        marker: {
+          color: axisColor,
+          size: markerSize,
+          symbol,
+          line: { color: darkenColor(axisColor, 0.35), width: Math.max(0.5, markerSize * 0.07) },
+          gradient: { type: 'radial', color: lightenColor(axisColor, 0.62) },
+        },
+        hovertemplate: `<b>${s.name}</b><br>%{x:.4s} Hz<br>${lbl.name}: %{y}<extra></extra>`,
+        yaxis: yAxisRef,
+      });
+    });
+  }
+  const hasData = traces.some(tr => tr.x && tr.x.length);
+  return { traces, hasData };
+}
+
+function renderComparePlot() {
+  if (typeof Plotly === 'undefined') return;
+
+  const visible = state.samples.filter(s => s.visible && s.files.length);
+  if (!visible.length) {
+    renderCmpDebug();
+    return;
+  }
+
+  buildCardTools('compare');
+  applyAspect('compare');
+  const el = document.getElementById('plot_compare');
+  const compareStyle = plotFonts.compare;
+  // Refresh the diagnostics panel on every render so it always shows current values
+  renderCmpDebug();
+
+  if (!cmpState.freqs.length) {
+    Plotly.react(el, [], {
+      ...commonLayout('', '', { fonts: compareStyle }),
+      annotations: [{
+        text: t('addFreqHint'),
+        showarrow: false,
+        font: { color: cssVar('--ink-faint') || '#525c68', size: 13, family: 'Fraunces, serif' },
+        x: 0.5, y: 0.5, xref: 'paper', yref: 'paper',
+      }],
+      xaxis: { ...commonLayout('','').xaxis, showticklabels: false, showgrid: false, zeroline: false, visible: false },
+      yaxis: { ...commonLayout('','').yaxis, showticklabels: false, showgrid: false, zeroline: false, visible: false },
+    }, PLOTLY_CFG);
+    return;
+  }
+
+  // Resolve active axes (indices into Y_AXIS_COLORS).
+  // Y1 always active; Y2..Y4 active if their metric is non-empty.
+  const activeAxes = [];
+  cmpState.metrics.forEach((m, i) => {
+    if (m && METRIC_LABEL[m]) activeAxes.push({ idx: i, metric: m });
+  });
+  if (!activeAxes.length) return;   // shouldn't happen — Y1 is required
+
+  let chart = cmpState.chart;
+  if (chart === 'auto') chart = cmpState.freqs.length <= 4 ? 'bar' : 'scatter';
+
+  // Build traces for each active axis
+  const allTraces = [];
+  let anyData = false;
+  for (const ax of activeAxes) {
+    const built = buildCompareTracesForAxis(visible, ax.metric, chart, cmpState.freqs, ax.idx);
+    allTraces.push(...built.traces);
+    if (built.hasData) anyData = true;
+  }
+
+  if (!anyData) {
+    const primaryLbl = METRIC_LABEL[activeAxes[0].metric].name;
+    Plotly.react(el, [], {
+      ...commonLayout('', '', { fonts: compareStyle }),
+      annotations: [{
+        text: t('noDataForMetric', primaryLbl),
+        showarrow: false,
+        font: { color: cssVar('--danger') || '#d97757', size: 13, family: 'Fraunces, serif' },
+        x: 0.5, y: 0.5, xref: 'paper', yref: 'paper',
+      }],
+      xaxis: { ...commonLayout('','').xaxis, showticklabels: false, showgrid: false, zeroline: false, visible: false },
+      yaxis: { ...commonLayout('','').yaxis, showticklabels: false, showgrid: false, zeroline: false, visible: false },
+    }, PLOTLY_CFG);
+    return;
+  }
+
+  const xt = chart === 'bar' ? t('axisSample') : t('axisFreq');
+  const dims = el._displayDims || { w: 600, h: 400 };
+
+  // Build base layout with Y1 as the primary axis
+  const y1Metric = activeAxes[0].metric;
+  const y1Lbl = METRIC_LABEL[y1Metric];
+  const y1Title = `${y1Lbl.name}${y1Lbl.unit ? `  (${y1Lbl.unit})` : ''}`;
+  const baseLayout = commonLayout(xt, y1Title, {
+    xlog: (chart === 'scatter' || chart === 'points'),
+    ylog: cmpState.scale === 'log',
+    fonts: compareStyle,
+    traceCount: allTraces.length,
+    plotWidth: dims.w,
+    plotHeight: dims.h,
+  });
+
+  // Color the Y1 axis (line + ticks + label + title) with its axis color
+  const y1Color = Y_AXIS_COLORS[activeAxes[0].idx];
+  baseLayout.yaxis.linecolor = y1Color;
+  baseLayout.yaxis.tickcolor = y1Color;
+  baseLayout.yaxis.tickfont = { ...baseLayout.yaxis.tickfont, color: y1Color };
+  baseLayout.yaxis.title.font = { ...baseLayout.yaxis.title.font, color: y1Color };
+  // Minor ticks also colored
+  if (baseLayout.yaxis.minor) {
+    baseLayout.yaxis.minor.tickcolor = y1Color;
+  }
+
+  // Apply Y zoom on Y1 — gather extent from Y1 traces only (yaxis: 'y') and
+  // scale around center. Only kicks in if the user moved the slider.
+  if (compareStyle.yZoom && compareStyle.yZoom !== 1) {
+    let lo = Infinity, hi = -Infinity;
+    for (const tr of allTraces) {
+      if (tr.yaxis && tr.yaxis !== 'y') continue;   // skip Y2/Y3/Y4 traces
+      for (const v of (tr.y || [])) {
+        if (v == null || !Number.isFinite(v)) continue;
+        const yv = cmpState.scale === 'log' ? (v > 0 ? Math.log10(v) : null) : v;
+        if (yv == null) continue;
+        if (yv < lo) lo = yv;
+        if (yv > hi) hi = yv;
+      }
+    }
+    if (Number.isFinite(lo) && Number.isFinite(hi) && hi > lo) {
+      const yRange = cmpState.scale === 'log'
+        ? niceLogRange(Math.pow(10, lo), Math.pow(10, hi))
+        : niceLinearRange(lo, hi);
+      const scaled = scaleRange(yRange, compareStyle.yZoom);
+      if (scaled) {
+        baseLayout.yaxis.range = scaled;
+        baseLayout.yaxis.autorange = false;
+      }
+    }
+  }
+
+  if (chart === 'bar') {
+    baseLayout.xaxis.type = 'category';
+    baseLayout.xaxis.minor = { ticks: '', ticklen: 0 };
+  }
+
+  // Set up secondary axes
+  const numExtra = activeAxes.length - 1;   // Y2..Y4 count
+  if (numExtra >= 1) {
+    // Y1 mirror has to disappear from the right edge — Y2 owns that side
+    baseLayout.yaxis.mirror = false;
+
+    // When Y3 or Y4 is present, shrink the X-axis domain so the offset axes
+    // have room to the right. Origin's convention: ~6-8% of width per offset axis.
+    if (numExtra >= 2) {
+      const offsetPerAxis = 0.07;
+      const xDomainRight = 1 - offsetPerAxis * (numExtra - 1);
+      baseLayout.xaxis.domain = [0, xDomainRight];
+    }
+
+    // Build each secondary Y axis
+    activeAxes.slice(1).forEach((ax, secIdx) => {
+      const m = METRIC_LABEL[ax.metric];
+      const yName = `yaxis${ax.idx + 1}`;
+      const axColor = Y_AXIS_COLORS[ax.idx];
+      const offsetPerAxis = 0.07;
+      const totalExtra = numExtra;
+      // Y2 sits at the right edge of the (possibly shrunk) plot domain.
+      // Y3/Y4 are offset further right by offsetPerAxis steps.
+      // Position is in paper coordinates (0..1) across the full plot width.
+      const position = (totalExtra >= 2)
+        ? (secIdx === 0 ? (1 - offsetPerAxis * (totalExtra - 1)) : (1 - offsetPerAxis * (totalExtra - 1 - secIdx)))
+        : 1.0;
+      baseLayout[yName] = {
+        title: {
+          text: `${m.name}${m.unit ? `  (${m.unit})` : ''}`,
+          font: { size: compareStyle.axisTitle, family: 'Inter, Arial, sans-serif', color: axColor },
+          standoff: 12,
+        },
+        overlaying: 'y',
+        side: 'right',
+        anchor: (totalExtra >= 2 && secIdx > 0) ? 'free' : 'x',
+        position,
+        linecolor: axColor,
+        linewidth: 1.6,
+        showline: true,
+        mirror: false,
+        ticks: 'inside',
+        ticklen: 7,
+        tickwidth: 1.4,
+        tickcolor: axColor,
+        tickfont: { size: compareStyle.tickLabel, color: axColor, family: 'Inter, Arial, sans-serif' },
+        type: 'linear',
+        autorange: true,
+        automargin: true,
+        showgrid: false,
+        zeroline: false,
+        minor: { ticks: 'inside', ticklen: 4, tickwidth: 1, tickcolor: axColor, showgrid: false },
+      };
+    });
+
+    // Expand right margin to give offset axes room for their labels
+    const baseRight = 28;
+    const extraRight = numExtra >= 2
+      ? baseRight + 80 * (numExtra - 1)
+      : baseRight + 80;
+    baseLayout.margin = { ...(baseLayout.margin || {}), r: extraRight };
+  }
+
+  const layout = {
+    ...baseLayout,
+    barmode: 'group',
+    bargap: 0.25,
+    bargroupgap: 0.08,
+    showlegend: allTraces.length > 1,
+  };
+
+  // Distinguish chart switches so axis types refresh cleanly
+  const axesKey = activeAxes.map(a => `${a.idx}:${a.metric}`).join(',');
+  const chartKey = `${chart}__${axesKey}`;
+  if (el._lastChartType && el._lastChartType !== chartKey) {
+    Plotly.purge(el);
+  }
+  el._lastChartType = chartKey;
+  Plotly.react(el, allTraces, layout, PLOTLY_CFG);
+}
+
+function renderAll() {
+  renderMainPlots();
+  renderComparePlot();
+}
+
+/* ============================================================
+   EXPORT CSV
+   ============================================================ */
+// ============================================================
+// CSV EXPORT (zip with per-plot CSVs + master)
+// ============================================================
+//
+// Per-plot CSV is wide-format: freq column + one column per sample per metric.
+// Master CSV is long-format: one row per (sample, frequency) with all metrics.
+// Both are designed to drag straight into Origin's import dialog.
+
+// Lazy-load JSZip from CDN. Returns a promise resolving to the JSZip class.
+function loadJSZip() {
+  if (window.JSZip) return Promise.resolve(window.JSZip);
+  return new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = 'https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js';
+    s.onload = () => window.JSZip ? resolve(window.JSZip) : reject(new Error('JSZip failed to define'));
+    s.onerror = () => reject(new Error('Could not load JSZip from CDN'));
+    document.head.appendChild(s);
+  });
+}
+
+// Safe sample name for CSV column headers: keep letters/numbers/_/-, replace
+// the rest with _. Trim to 40 chars to avoid bloated headers.
+function sanitizeForCol(s) {
+  return s.replace(/[^a-zA-Z0-9_\-]/g, '_').slice(0, 40);
+}
+
+// Build a wide CSV: rows are frequencies (union of all samples' freqs at
+// log10-eps precision), columns are sample names. yKeys is an array of
+// {key, label} pairs — for nyquist we want two columns per sample
+// (Z_real and Z_imag).
+function buildWideCsv(samples, yKeyDefs, negate) {
+  // Collect all unique frequencies across samples (using same eps logic as
+  // mergeSampleFiles so we don't get pseudo-duplicates from float noise).
+  const freqMap = new Map();
+  const sampleData = samples.map(s => mergeSampleFiles(s));
+  for (const merged of sampleData) {
+    for (const r of merged) {
+      if (r.freq == null || r.freq <= 0) continue;
+      const k = Math.log10(r.freq).toFixed(6);
+      if (!freqMap.has(k)) freqMap.set(k, r.freq);
+    }
+  }
+  // Sort frequencies ascending
+  const freqs = [...freqMap.values()].sort((a, b) => a - b);
+  // Header
+  const cols = ['Frequency_Hz'];
+  samples.forEach((s, i) => {
+    const tag = sanitizeForCol(s.name);
+    yKeyDefs.forEach(yd => {
+      cols.push(`${yd.label}_${tag}`);
+    });
+  });
+  const lines = [cols.join(',')];
+  // Build row index per sample for O(1) freq lookup
+  const sampleFreqMap = sampleData.map(merged => {
+    const m = new Map();
+    for (const r of merged) {
+      if (r.freq == null || r.freq <= 0) continue;
+      m.set(Math.log10(r.freq).toFixed(6), r);
+    }
+    return m;
+  });
+  for (const f of freqs) {
+    const k = Math.log10(f).toFixed(6);
+    const row = [f];
+    sampleData.forEach((_, i) => {
+      const r = sampleFreqMap[i].get(k);
+      yKeyDefs.forEach(yd => {
+        const v = r ? r[yd.key] : null;
+        if (v == null || !Number.isFinite(v)) { row.push(''); }
+        else { row.push(negate && yd.negate ? -v : v); }
+      });
+    });
+    lines.push(row.join(','));
+  }
+  return lines.join('\n');
+}
+
+// Build the master long-format CSV: one row per (sample, frequency) with
+// all metrics. This is the most flexible format if you want to slice the
+// data differently later.
+function buildMasterCsv(samples) {
+  const cols = ['Sample','Frequency_Hz','Cp_F','Rs_Ohm','D','Z_mag_Ohm','Phase_deg','Z_real_Ohm','Z_imag_Ohm'];
+  const lines = [cols.join(',')];
+  for (const s of samples) {
+    const merged = mergeSampleFiles(s);
+    for (const r of merged) {
+      if (r.freq == null || r.freq <= 0) continue;
+      const row = [
+        `"${s.name.replace(/"/g, '""')}"`,
+        r.freq,
+        r.cp ?? '',
+        r.rs ?? '',
+        r.d ?? '',
+        r.z ?? '',
+        r.phase ?? '',
+        r.zReal ?? '',
+        r.zImag ?? '',
+      ];
+      lines.push(row.join(','));
+    }
+  }
+  return lines.join('\n');
+}
+
+// Build the D-AUC CSV (one row per sample with the integrated area).
+function buildDAucCsv(samples) {
+  const cols = ['Sample','D_AUC_log_decade'];
+  const lines = [cols.join(',')];
+  for (const s of samples) {
+    const merged = mergeSampleFiles(s);
+    const a = integrateD(merged);
+    if (a != null && Number.isFinite(a)) {
+      lines.push([`"${s.name.replace(/"/g, '""')}"`, a].join(','));
+    }
+  }
+  return lines.join('\n');
+}
+
+function exportCsv() {
+  const visible = state.samples.filter(s => s.visible && s.files.length);
+  if (!visible.length) { toast(t('csvZipNoData'), true); return; }
+  toast(t('jsZipLoading'));
+  loadJSZip().then((JSZip) => {
+    const zip = new JSZip();
+    // Per-plot CSVs — wide format with samples as columns
+    zip.file('cp.csv',         buildWideCsv(visible, [{ key: 'cp', label: 'Cp' }]));
+    zip.file('rs.csv',         buildWideCsv(visible, [{ key: 'rs', label: 'Rs' }]));
+    zip.file('d.csv',          buildWideCsv(visible, [{ key: 'd', label: 'D' }]));
+    zip.file('bode_mag.csv',   buildWideCsv(visible, [{ key: 'z', label: 'Zmag' }]));
+    zip.file('bode_phase.csv', buildWideCsv(visible, [{ key: 'phase', label: 'Phase' }]));
+    // Nyquist needs two columns per sample (Z_real and Z_imag).
+    // We negate Z_imag because that's how Nyquist plots conventionally display.
+    zip.file('nyquist.csv',    buildWideCsv(visible, [
+      { key: 'zReal', label: 'Z_real' },
+      { key: 'zImag', label: 'Z_imag_negated', negate: true },
+    ]));
+    // D area under curve as a tiny separate file
+    zip.file('d_auc.csv', buildDAucCsv(visible));
+    // Master long-format CSV
+    zip.file('master_all_data.csv', buildMasterCsv(visible));
+    // README describing the files
+    const readme = `EIS Workbench export
+Generated: ${new Date().toISOString()}
+Samples included: ${visible.map(s => s.name).join(', ')}
+
+Files:
+  cp.csv          — Parallel capacitance vs frequency (wide format)
+  rs.csv          — Series resistance vs frequency
+  d.csv           — Dissipation factor vs frequency
+  bode_mag.csv    — |Z| (impedance magnitude) vs frequency
+  bode_phase.csv  — Phase angle vs frequency
+  nyquist.csv     — Z_real and Z_imag_negated per sample (use the latter for −Z″ axis)
+  d_auc.csv       — One value per sample: ∫ D · d(log10 f)
+  master_all_data.csv — All metrics, long format (one row per sample × frequency)
+
+To import into Origin:
+  - For a single plot type, drag the matching CSV directly into Origin.
+  - For Nyquist: highlight a Z_real column + the matching Z_imag_negated column, then Plot → Scatter.
+  - For master_all_data.csv: use Origin's "Unstack Columns" if you want it in wide form.
+`;
+    zip.file('README.txt', readme);
+
+    return zip.generateAsync({ type: 'blob' });
+  }).then((blob) => {
+    const stamp = new Date().toISOString().slice(0,10);
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `eis_data_${stamp}.zip`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast(t('csvZipExported', 8));
+  }).catch((err) => {
+    toast('Zip export failed: ' + err.message, true);
+  });
+}
+
+// ============================================================
+// SESSION SAVE / LOAD
+// ============================================================
+//
+// A session captures everything the user might want to restore: samples
+// (including their raw row data, name, color, visibility, file labels),
+// comparison-card state, per-plot aspect ratios, per-plot style settings,
+// transparent-bg toggle, theme, and locale.
+//
+// Format version 1. Bump SESSION_VERSION on schema changes and add a
+// migration in loadSessionFromObject.
+
+const SESSION_VERSION = 1;
+
+function buildSessionObject() {
+  return {
+    version: SESSION_VERSION,
+    savedAt: new Date().toISOString(),
+    samples: state.samples.map(s => ({
+      id: s.id,
+      name: s.name,
+      color: s.color,
+      visible: s.visible,
+      files: s.files.map(f => ({
+        name: f.name,
+        type: f.type,
+        // The runtime structure is f.data = { type, rows, present }.
+        // We flatten rows/present into the saved file so re-loading is simple.
+        rows: f.data ? f.data.rows : (f.rows || []),
+        present: f.data ? f.data.present : (f.present || []),
+      })),
+    })),
+    nextId,
+    activeId: state.activeId,
+    cmpState,
+    plotAspect,
+    plotFonts,
+    transparentBg,
+    currentTheme,
+    currentLocale,
+  };
+}
+
+function loadSessionFromObject(obj) {
+  if (!obj || typeof obj !== 'object') throw new Error('invalid session object');
+  if (obj.version !== SESSION_VERSION) {
+    // Allow version 1 → current as the only path for now; future versions
+    // would migrate here.
+    if (obj.version != null && obj.version > SESSION_VERSION) {
+      throw new Error(`session version ${obj.version} is newer than this app (v${SESSION_VERSION})`);
+    }
+  }
+  // Restore samples — files need their { data: {type, rows, present} } structure
+  // because mergeSampleFiles() reads f.data.rows.
+  state.samples = (obj.samples || []).map(s => ({
+    id: s.id,
+    name: s.name,
+    color: s.color,
+    visible: s.visible !== false,
+    files: (s.files || []).map(f => ({
+      name: f.name,
+      type: f.type,
+      data: { type: f.type, rows: f.rows || [], present: f.present || [] },
+    })),
+  }));
+  nextId = obj.nextId || (state.samples.reduce((m, s) => Math.max(m, s.id || 0), 0) + 1);
+  state.activeId = obj.activeId || (state.samples[0] && state.samples[0].id) || null;
+
+  // Restore UI/plot state
+  if (obj.cmpState)    Object.assign(cmpState, obj.cmpState);
+  if (obj.plotAspect)  Object.assign(plotAspect, obj.plotAspect);
+  if (obj.plotFonts) {
+    for (const k of Object.keys(obj.plotFonts)) {
+      if (plotFonts[k]) plotFonts[k] = { ...DEFAULT_FONTS, ...obj.plotFonts[k] };
+    }
+  }
+  if (typeof obj.transparentBg === 'boolean') transparentBg = obj.transparentBg;
+  if (obj.currentTheme) currentTheme = obj.currentTheme;
+  if (obj.currentLocale) currentLocale = obj.currentLocale;
+
+  // Apply persisted prefs
+  document.documentElement.setAttribute('data-theme', currentTheme);
+  try {
+    localStorage.setItem('eis_theme', currentTheme);
+    localStorage.setItem('eis_locale', currentLocale);
+    localStorage.setItem('eis_transparent_bg', transparentBg ? '1' : '0');
+  } catch (e) {}
+  applyStaticStrings();
+  updateThemeToggleUI();
+  updateLocaleToggleUI();
+  // Sync the bg toggle UI
+  const bgEl = document.getElementById('bareBgToggle');
+  if (bgEl) bgEl.checked = transparentBg;
+  // Restore Y-axis selectors UI to match cmpState.metrics
+  ['cmpY1Metric','cmpY2Metric','cmpY3Metric','cmpY4Metric'].forEach((id, i) => {
+    const sel = document.getElementById(id);
+    if (sel && cmpState.metrics && cmpState.metrics[i] != null) sel.value = cmpState.metrics[i];
+  });
+  const chartSel = document.getElementById('cmpChart');
+  if (chartSel && cmpState.chart) chartSel.value = cmpState.chart;
+  const scaleSel = document.getElementById('cmpScale');
+  if (scaleSel && cmpState.scale) scaleSel.value = cmpState.scale;
+  renderCmpFreqChips();
+  renderSidebar();
+  renderAll();
+}
+
+function saveSessionJson() {
+  const obj = buildSessionObject();
+  const json = JSON.stringify(obj, null, 2);   // indented for human-readability
+  const blob = new Blob([json], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const stamp = new Date().toISOString().slice(0,10);
+  const fname = `eis_session_${stamp}.json`;
+  a.href = url;
+  a.download = fname;
+  a.click();
+  URL.revokeObjectURL(url);
+  toast(t('sessionSaved', fname));
+}
+
+function saveSessionHtml() {
+  // Approach: snapshot the current DOM via outerHTML, then surgically inject
+  // a session JSON inside a <script> tag that the bootloader picks up.
+  // Strip any Plotly-rendered SVG (it'd be stale on reload) and any existing
+  // embedded session script (so multi-save doesn't double-bake).
+  const obj = buildSessionObject();
+  const json = JSON.stringify(obj);
+  // Clone the document
+  const clone = document.documentElement.cloneNode(true);
+  // Remove rendered Plotly plots so the file boots clean
+  clone.querySelectorAll('.plotly, .plot > .js-plotly-plot').forEach(n => n.remove());
+  clone.querySelectorAll('.plot').forEach(n => { n.innerHTML = ''; });
+  // Remove any previous embedded session
+  clone.querySelectorAll('script[data-embedded-session]').forEach(n => n.remove());
+  // Remove transient toast / popovers
+  clone.querySelectorAll('.toast').forEach(n => { n.textContent = ''; n.classList.remove('show'); });
+  clone.querySelectorAll('.font-popover, .color-popover').forEach(n => n.remove());
+  // Insert the session as the FIRST script in <body> so it's defined before
+  // the main app script runs. The main app checks window.__EMBEDDED_SESSION
+  // on boot.
+  const sessionScript = document.createElement('script');
+  sessionScript.setAttribute('data-embedded-session', '1');
+  // Use a JSON.parse wrapper so the JSON doesn't have to be re-quoted into JS
+  sessionScript.textContent = 'window.__EMBEDDED_SESSION = ' + json + ';';
+  const body = clone.querySelector('body');
+  body.insertBefore(sessionScript, body.firstChild);
+  // Serialize
+  const html = '<!DOCTYPE html>\n' + clone.outerHTML;
+  const blob = new Blob([html], { type: 'text/html' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const stamp = new Date().toISOString().slice(0,10);
+  const fname = `eis_session_${stamp}.html`;
+  a.href = url;
+  a.download = fname;
+  a.click();
+  URL.revokeObjectURL(url);
+  toast(t('sessionSaved', fname));
+}
+
+function loadSessionFromFile(file) {
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const obj = JSON.parse(e.target.result);
+      loadSessionFromObject(obj);
+      toast(t('sessionLoaded', state.samples.length));
+    } catch (err) {
+      toast(t('sessionLoadFailed'), true);
+    }
+  };
+  reader.onerror = () => toast(t('sessionLoadFailed'), true);
+  reader.readAsText(file);
+}
+
+/* ============================================================
+   UI WIRING
+   ============================================================ */
+const toastEl = document.getElementById('toast');
+let toastTimer;
+function toast(msg, isError = false) {
+  toastEl.textContent = msg;
+  toastEl.classList.toggle('error', isError);
+  toastEl.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toastEl.classList.remove('show'), 3200);
+}
+
+/* ============================================================
+   STATIC STRINGS — apply translations to DOM elements with data-i18n
+   ============================================================ */
+function applyStaticStrings() {
+  // text content
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    const v = t(key);
+    if (typeof v === 'string') el.textContent = v;
+  });
+  // innerHTML (for strings containing markup)
+  document.querySelectorAll('[data-i18n-html]').forEach(el => {
+    const key = el.getAttribute('data-i18n-html');
+    const v = t(key);
+    if (typeof v === 'string') el.innerHTML = v;
+  });
+  // placeholder for the frequency input
+  const cmp = document.getElementById('cmpFreqInput');
+  if (cmp) cmp.placeholder = t('addFreqPlaceholder');
+  // Update document title
+  document.title = t('appTitle');
+}
+
+document.getElementById('addSample').addEventListener('click', () => createSample());
+document.getElementById('clearAll').addEventListener('click', () => {
+  if (state.samples.length && !confirm(t('confirmReset'))) return;
+  state.samples = [];
+  state.activeId = null;
+  nextId = 1;
+  renderSidebar();
+  renderAll();
+});
+document.getElementById('exportCsv').addEventListener('click', exportCsv);
+document.getElementById('saveJsonBtn').addEventListener('click', saveSessionJson);
+document.getElementById('saveHtmlBtn').addEventListener('click', saveSessionHtml);
+document.getElementById('loadSessionBtn').addEventListener('click', () => {
+  document.getElementById('loadSessionFile').click();
+});
+document.getElementById('loadSessionFile').addEventListener('change', (e) => {
+  const file = e.target.files && e.target.files[0];
+  if (file) loadSessionFromFile(file);
+  e.target.value = '';   // clear so the same file can be re-selected
+});
+
+// Theme & locale toggles
+document.getElementById('themeToggle').addEventListener('click', () => {
+  applyTheme(currentTheme === 'dark' ? 'light' : 'dark');
+});
+document.getElementById('localeToggle').addEventListener('click', () => {
+  applyLocale(currentLocale === 'en' ? 'ko' : 'en');
+});
+
+// Transparent-background sidebar switch.
+// When ON: exports have no background fill (transparent PNG/SVG).
+// The on-screen plot also drops its white fill, so what you see matches.
+const bareBgEl = document.getElementById('bareBgToggle');
+try {
+  const saved = localStorage.getItem('eis_transparent_bg');
+  if (saved === '1') transparentBg = true;
+} catch (e) {}
+bareBgEl.checked = transparentBg;
+bareBgEl.addEventListener('change', (e) => {
+  transparentBg = e.target.checked;
+  try { localStorage.setItem('eis_transparent_bg', transparentBg ? '1' : '0'); } catch (err) {}
+  renderAll();
+});
+
+const drop = document.getElementById('dropZone');
+const input = document.getElementById('fileInput');
+input.addEventListener('change', e => {
+  if (e.target.files.length) ingestFiles(e.target.files);
+  input.value = '';
+});
+['dragenter','dragover'].forEach(evt => {
+  drop.addEventListener(evt, e => { e.preventDefault(); e.stopPropagation(); drop.classList.add('over'); });
+});
+['dragleave','drop'].forEach(evt => {
+  drop.addEventListener(evt, e => { e.preventDefault(); e.stopPropagation(); drop.classList.remove('over'); });
+});
+drop.addEventListener('drop', e => {
+  if (e.dataTransfer.files.length) ingestFiles(e.dataTransfer.files);
+});
+
+// Wire all 4 Y-axis metric selectors
+['cmpY1Metric','cmpY2Metric','cmpY3Metric','cmpY4Metric'].forEach((id, i) => {
+  const sel = document.getElementById(id);
+  if (sel) sel.addEventListener('change', (e) => {
+    cmpState.metrics[i] = e.target.value;
+    renderComparePlot();
+  });
+});
+document.getElementById('cmpChart').addEventListener('change', (e) => {
+  cmpState.chart = e.target.value;
+  renderComparePlot();
+});
+document.getElementById('cmpScale').addEventListener('change', (e) => {
+  cmpState.scale = e.target.value;
+  renderComparePlot();
+});
+const cmpInput = document.getElementById('cmpFreqInput');
+cmpInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' || e.key === ',' || e.key === 'Tab') {
+    e.preventDefault();
+    const added = addCmpFreqs(cmpInput.value);
+    cmpInput.value = '';
+    renderCmpFreqChips();
+    renderComparePlot();
+    if (!added && e.key !== 'Tab') toast(t('noValidFreq'), true);
+  }
+});
+cmpInput.addEventListener('blur', () => {
+  if (!cmpInput.value.trim()) return;
+  addCmpFreqs(cmpInput.value);
+  cmpInput.value = '';
+  renderCmpFreqChips();
+  renderComparePlot();
+});
+
+let resizeTimer;
+window.addEventListener('resize', () => {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => {
+    for (const k of PLOT_IDS) applyAspect(k);
+  }, 120);
+});
+
+// Boot
+// Apply persisted theme and locale before first render
+document.documentElement.setAttribute('data-theme', currentTheme);
+applyStaticStrings();
+updateThemeToggleUI();
+updateLocaleToggleUI();
+renderQuickFreqs();
+renderSidebar();
+
+// Check for an embedded session (when the user opened a standalone HTML saved
+// from this app). If present, restore it before the first render so the user
+// sees their data immediately. Wrapped in try/catch — a malformed embedded
+// session must not block the app from booting empty.
+if (window.__EMBEDDED_SESSION) {
+  try {
+    loadSessionFromObject(window.__EMBEDDED_SESSION);
+    // loadSessionFromObject calls renderAll() internally, so we're done.
+  } catch (err) {
+    console.error('Failed to restore embedded session:', err);
+    toast(t('sessionLoadFailed'), true);
+    renderAll();
+  }
+} else {
+  renderAll();
+}
+
+// Plotly-not-loaded detection. The script tag has onerror to set this flag,
+// but the flag is also true if Plotly didn't define itself (e.g. CDN returned
+// a 200 with empty body, or browser blocked it for security reasons).
+if (typeof Plotly === 'undefined' || window.__plotlyLoadFailed) {
+  const banner = document.createElement('div');
+  banner.style.cssText = 'position:fixed;top:0;left:0;right:0;padding:14px 20px;background:var(--danger);color:white;font-family:JetBrains Mono,monospace;font-size:12px;text-align:center;z-index:10000;box-shadow:0 2px 12px rgba(0,0,0,0.3);';
+  banner.innerHTML = 'Plotly.js library failed to load. Plots will not render. Check your internet connection or browser extensions (ad blockers can block CDNs), then reload this page.';
+  document.body.appendChild(banner);
+}
+</script>
+
+</body>
+</html>
